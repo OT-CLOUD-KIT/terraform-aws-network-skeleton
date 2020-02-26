@@ -5,16 +5,12 @@ stages:
   - lint
   - test
 
-codelint:
-  tags:
-    - lint     
+codelint:    
   stage: lint
   script: 
     - ls -lhrt #terraform fmt
 
 codetest:
-  tags:
-    - test
   stage: test
   script:
     - echo "will write test cases soon"
