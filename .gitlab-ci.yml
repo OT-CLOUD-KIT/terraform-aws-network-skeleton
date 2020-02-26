@@ -1,17 +1,21 @@
 ---
+image: hashicorp/terraform:0.12.21
+
 stages:
-  - terraform_linting
-  - terraform_test_cases
+  - lint
+  - test
 
-terraform_linting:
-  stage: terraform_linting
-  image: hashicorp/terraform:0.12.21
-  script:
-   - ls -lhrt #terraform fmt
-  allow_failure: false
+codelint:
+  tags:
+    - lint     
+  stage: lint
+  script: 
+    - ls -lhrt #terraform fmt
 
-terraform_test_cases:
-  stage: terraform_test_cases
+codetest:
+  tags:
+    - test
+  stage: test
   script:
-    - echo "will write some testcases in future"
+    - echo "will write test cases soon"
 ...
