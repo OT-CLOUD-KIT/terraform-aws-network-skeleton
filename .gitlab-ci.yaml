@@ -1,0 +1,17 @@
+---
+stages:
+  - terraform_linting
+  - terraform_test_cases
+
+terraform_linting:
+  stage: terraform_linting
+  image: hashicorp/terraform:0.12.21
+  script:
+   - terraform fmt -list=true -write=false -diff=true
+  allow_failure: false
+
+terraform_test_cases:
+  stage: terraform_test_cases
+  script:
+    - echo "will write some testcases in future"
+...
