@@ -2,7 +2,7 @@
 #image: wata727/tflint
 image: 
   name: wata727/tflint
-  entrypoint: ["/bin/sh"]
+  entrypoint: [""]
 stages:
   - lint
   - test
