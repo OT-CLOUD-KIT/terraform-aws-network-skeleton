@@ -1,7 +1,13 @@
+variable "name" {
+  description = "Name tag of the VPC"
+  type        = string
+  default     = "opstree"
+}
+
 variable "cidr_block" {
   description = "The CIDR block for the VPC."
   type        = string
-  default     = "10.0.0.0/16"
+  default     = ""
 }
 
 variable "instance_tenancy" {
@@ -38,12 +44,6 @@ variable "assign_generated_ipv6_cidr_block" {
   description = "If this attribute is true, it will Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC."
   type        = string
   default     = "false"
-}
-
-variable "name" {
-  description = "Name tag of the VPC"
-  type        = string
-  default     = "opstree"
 }
 
 variable "tags" {

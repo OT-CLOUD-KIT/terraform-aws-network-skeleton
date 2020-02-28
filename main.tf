@@ -1,5 +1,4 @@
-####################***VPC***#######################
-resource "aws_vpc" "main" {
+resource "aws_vpc" "vpc" {
   cidr_block                       = var.cidr_block
   instance_tenancy                 = var.instance_tenancy
   enable_dns_support               = var.enable_dns_support
@@ -17,7 +16,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.vpc.id
 
   tags = merge(
     {
@@ -28,7 +27,7 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_route" "igw_route" {
-  route_table_id         = aws_vpc.main.main_route_table_id
+  route_table_id         = aws_vpc.vpc.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw.id
 }
