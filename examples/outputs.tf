@@ -28,16 +28,6 @@ output "dhcp_options_id" {
   value       = module.network_skeleton.dhcp_options_id
 }
 
-output "ipv6_association_id" {
-  description = "The ipv6_association_id of the VPC"
-  value       = module.network_skeleton.ipv6_association_id
-}
-
-output "ipv6_cidr_block" {
-  description = "The ipv6_cidr_block of the VPC"
-  value       = module.network_skeleton.ipv6_cidr_block
-}
-
 output "network_skeleton_route_table_id" {
   description = "The network_skeleton_route_table_id of the VPC"
   value       = module.network_skeleton.main_route_table_id

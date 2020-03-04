@@ -40,12 +40,6 @@ variable "enable_classiclink_dns_support" {
   default     = "false"
 }
 
-variable "assign_generated_ipv6_cidr_block" {
-  description = "If this attribute is true, it will Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC."
-  type        = string
-  default     = "false"
-}
-
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)
@@ -57,3 +51,53 @@ variable "vpc_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "public_sub_az" {
+  description = "AZ for public subnet"
+  type        = string
+  default     = ""
+}
+
+variable "public_sub_az_id" {
+  description = "ID of AZ for public subnet"
+  type        = string
+  default     = ""
+}
+
+variable "public_subnet_cidr" {
+  description = "CIDR of public subnet"
+  type        = string
+  default     = ""
+}
+
+variable "map_public_ip_on_launch" {
+  description = "Specify true to indicate that instances launched into the subnet should be assigned a public IP address"
+  type        = string
+  default     = false
+}
+
+variable "backend_s3_bucket_name" {
+  description = "Name of the s3 bucket to be configured as backend"
+  type        = string
+  default     = "terraform-state-file-bucket"
+}
+
+variable "backend_key" {
+  description = "Path for the statefile"
+  type        = string
+  default     = "network_skeleton/terraform.tfstate"
+
+}
+
+variable "backend_region" {
+  description = "Region in which the bucket will be created"
+  type        = string
+  default     = "ap-south-1"
+}
+
+variable "backend_profile" {
+  description = "AWS profile to be used"
+  type        = string
+  default     = "default"
+} 
+

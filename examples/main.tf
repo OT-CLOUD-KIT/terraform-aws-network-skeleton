@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    
+    bucket = "terraform-state-ezmall-file-bucket" 
+    key     = "network_skeleton/terraform.tfstate" 
+    profile     = "default"
+    region = "ap-south-1"
+  }
+}
+
 module "network_skeleton" {
   source = "../"
 
@@ -7,7 +17,10 @@ module "network_skeleton" {
   enable_dns_support = true
   enable_dns_hostnames = false
   enable_classiclink = false
-  assign_generated_ipv6_cidr_block = false
+
+  public_sub_az = "ap-south-1a" #ap-south-1b ap-south-1c
+  public_subnet_cidr = "10.0.0.0/19"
+  map_public_ip_on_launch = true
 
   tags = {
     Terraform = "true"
