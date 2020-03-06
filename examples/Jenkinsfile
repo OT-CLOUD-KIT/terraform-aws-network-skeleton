@@ -32,5 +32,10 @@ pipeline {
                 }
             }
         }
+        stage('Slack Notify'){
+            steps {
+                slackSend channel: 'ot-aws', message: 'Terraformed well!!'
+            }
+        }		
     }
 }
