@@ -42,3 +42,13 @@ output "igw_id" {
   description = "The id of the IGW attached to VPC"
   value       = module.network_skeleton.igw_id
 }
+
+output "public_sub_id" {
+  description = "The id of public subnet"
+  value       = module.network_skeleton.public_sub_id
+}
+
+output "public_subnet_arn" {
+  description = "The arn of public subnet" 
+  value       = module.network_skeleton.public_subnet_arn
+}

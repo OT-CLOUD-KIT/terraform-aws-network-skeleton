@@ -22,8 +22,8 @@ module "network_skeleton" {
   enable_dns_hostnames = false
   enable_classiclink = false
 
-  public_sub_az = "ap-south-1a" #ap-south-1b ap-south-1c
-  public_subnet_cidr = "10.0.0.0/19"
+  public_sub_az = ["ap-south-1a","ap-south-1b","ap-south-1c"]
+  public_subnet_cidr = ["10.0.0.0/19","10.0.32.0/19","10.64.0.0/19"]
   map_public_ip_on_launch = true
 
   tags = {

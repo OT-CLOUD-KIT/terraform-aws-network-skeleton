@@ -11,12 +11,12 @@ output "arn" {
 
 output "default_network_acl_id" {
   description = "The default_network_acl_id of the VPC"
-  value       = aws_vpc.main.default_network_acl_id
+  value       = aws_network_acl.network_acl.id
 }
 
 output "default_route_table_id" {
   description = "The default_route_table_id of the VPC"
-  value       = aws_vpc.main.default_route_table_id
+  value       = aws_route.route_table.id
 }
 
 output "default_security_group_id" {
@@ -46,10 +46,10 @@ output "igw_id" {
 
 output "public_sub_id" {
   description = "The id of public subnet"
-  value       = aws_subnet.public.id
+  value       = aws_subnet.public.*.id
 }
 
 output "public_subnet_arn" {
   description = "The arn of public subnet" 
-  value       = aws_subnet.public.arn
+  value       = aws_subnet.public.*.arn
 }

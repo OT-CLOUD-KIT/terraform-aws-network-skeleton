@@ -54,20 +54,20 @@ variable "vpc_tags" {
 
 variable "public_sub_az" {
   description = "AZ for public subnet"
-  type        = string
-  default     = ""
+  type        = list(string)
+  default     = ["10.0.0.0/19","10.0.32.0/19","10.64.0.0/19"]
 }
 
 variable "public_sub_az_id" {
   description = "ID of AZ for public subnet"
-  type        = string
-  default     = ""
+  type        = list(string)
+  default     = ["ap-south-1a","ap-south-1b","ap-south-1c"]
 }
 
 variable "public_subnet_cidr" {
   description = "CIDR of public subnet"
-  type        = string
-  default     = ""
+  type        = list(string)
+  default     = ["ap-south-1a","ap-south-1b","ap-south-1c"]
 }
 
 variable "map_public_ip_on_launch" {
