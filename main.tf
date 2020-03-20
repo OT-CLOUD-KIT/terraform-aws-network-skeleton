@@ -78,7 +78,7 @@ resource "aws_network_acl" "network_acl" {
     protocol   = "tcp"
     rule_no    = 200
     action     = "allow"
-    cidr_block = element(aws_subnet.public.*.id,0)
+    cidr_block = var.cidr_block
     from_port  = 443
     to_port    = 443
   }
@@ -87,7 +87,7 @@ resource "aws_network_acl" "network_acl" {
     protocol   = "tcp"
     rule_no    = 100
     action     = "allow"
-    cidr_block = element(aws_subnet.public.*.id,0)
+    cidr_block = var.cidr_block
     from_port  = 80
     to_port    = 80
   }
