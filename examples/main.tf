@@ -2,28 +2,18 @@ provider "aws" {
   region                  = "ap-south-1"
 }
 
-terraform {
-  backend "s3" {
-    
-    bucket = "terraform-state-ezmall-file-bucket" 
-    key     = "network_skeleton/terraform.tfstate" 
-    profile     = "default"
-    region = "ap-south-1"
-  }
-}
-
 module "network_skeleton" {
   source = "../"
 
   name = "opstree"
-  cidr_block = "10.0.0.0/16"
-  instance_tenancy = "dedicated"
+  cidr_block = "10.0.0.0/24"
+  instance_tenancy = "default"
   enable_dns_support = true
   enable_dns_hostnames = false
   enable_classiclink = false
 
   public_sub_az = ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  public_subnet_cidr = ["10.0.0.0/19","10.0.32.0/19","10.0.64.0/19"]
+  public_subnet_cidr = ["10.0.0.0/27","10.0.0.32/27","10.0.0.64/27"]
   map_public_ip_on_launch = true
   
   nacl_egress_rule_no = 200
@@ -45,7 +35,13 @@ module "network_skeleton" {
   sg_ingress_to_port = [443,80]
   
   whitelist_ssh_ip = ["171.76.32.5/32","191.23.54.23/32"]
+  
+  certificate_arn = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4"
 
+  require_hosted_zone = true
+  name_hz  = "opstree.com"
+  record_type = "A"
+ 
   tags = {
     Terraform = "true"
     Environment = "dev"
