@@ -142,6 +142,40 @@ resource "aws_lb" "alb"{
   )
 }
 
+resource "aws_lb_listener" "https_front_end" {
+  load_balancer_arn                = aws_lb.alb.arn
+  port                             = "443"
+  protocol                         = "HTTPS"
+  ssl_policy                       = "ELBSecurityPolicy-2016-08"
+  certificate_arn                  = var.certificate_arn
+
+  default_action {
+    type                           = "fixed-response"
+
+    fixed_response {
+      content_type                 = "text/plain"
+      message_body                 = "Fixed response content"
+      status_code                  = "200"
+    }
+  }
+}
+
+resource "aws_lb_listener" "http_front_end" {
+  load_balancer_arn                = aws_lb.alb.arn
+  port                             = "80"
+  protocol                         = "HTTP"
+
+  default_action {
+    type                           = "redirect"
+
+    redirect {
+      port                         = "443"
+      protocol                     = "HTTPS"
+      status_code                  = "HTTP_301"
+    }
+  }
+}
+
 ########## Web Security Group ####################
 resource "aws_security_group" "web_sg" {
   name                             = format("%s-web_sg", var.name)
@@ -193,3 +227,30 @@ resource "aws_security_group" "ssh_sg" {
     var.tags,
   )
 }
+
+########## Public hosted zone ####################
+resource "aws_route53_zone" "public" {
+  count                            = var.require_hosted_zone ? 1:0
+  name                             = var.name_hz
+
+  tags = merge(
+    {
+    Name                           = format("%s-ssh_sg", var.name)
+  },
+    var.tags,
+  )
+}
+
+resource "aws_route53_record" "public_record" {
+  count                            = var.require_hosted_zone ? 1:0
+  zone_id                          = aws_route53_zone.public[0].zone_id
+  name                             = var.name_hz
+  type                             = var.record_type
+  
+  alias {
+    name                           = aws_lb.alb.dns_name
+    zone_id                        = aws_lb.alb.zone_id
+    evaluate_target_health         = true
+  }
+}
+

@@ -7,13 +7,12 @@ variable "name" {
 variable "cidr_block" {
   description = "The CIDR block for the VPC."
   type        = string
-  default     = ""
 }
 
 variable "instance_tenancy" {
   description = "If this attribute is true, the provider ensures all EC2 instances that are launched in a VPC run on hardware that's dedicated to a single customer."
   type        = string
-  default     = "dedicated"
+  default     = "default"
 }
 
 variable "enable_dns_support" {
@@ -75,31 +74,6 @@ variable "map_public_ip_on_launch" {
   type        = string
   default     = false
 }
-
-variable "backend_s3_bucket_name" {
-  description = "Name of the s3 bucket to be configured as backend"
-  type        = string
-  default     = "terraform-state-file-bucket"
-}
-
-variable "backend_key" {
-  description = "Path for the statefile"
-  type        = string
-  default     = "network_skeleton/terraform.tfstate"
-
-}
-
-variable "backend_region" {
-  description = "Region in which the bucket will be created"
-  type        = string
-  default     = "ap-south-1"
-}
-
-variable "backend_profile" {
-  description = "AWS profile to be used"
-  type        = string
-  default     = "default"
-} 
 
 variable "nacl_egress_rule_no" {
   description = "Starting rule number for the entry in NACL egress rule"
@@ -183,4 +157,18 @@ variable "whitelist_ssh_ip" {
   description = "The ip address allowed to do ssh"
   type = list(string)
   default = ["171.76.32.5/32","191.23.54.23/32"]
+}
+
+variable "certificate_arn" {
+  description = " The ARN of the default SSL server certificate"
+}
+
+variable "require_hosted_zone" {
+  description = "Enable true to create hosted zone"
+}
+variable "name_hz" {
+  description = "Hostzone domain name"
+}
+variable "record_type" {
+  description = "The record type"
 }
