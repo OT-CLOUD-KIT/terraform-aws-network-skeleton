@@ -1,7 +1,6 @@
 ---
-#image: wata727/tflint
 image: 
-  name: wata727/tflint
+  name: opstree/tflinter:v1-4
   entrypoint: [""]
 stages:
   - lint

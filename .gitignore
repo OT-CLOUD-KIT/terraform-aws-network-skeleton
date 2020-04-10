@@ -1,8 +1,5 @@
 .terraform
 *.tfstate*
-.kitchen
-terraform.tfstate
-terraform.tfvars
 *provider.tf
 *plan.out
 /examples/

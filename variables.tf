@@ -166,9 +166,11 @@ variable "certificate_arn" {
 variable "require_hosted_zone" {
   description = "Enable true to create hosted zone"
 }
+
 variable "name_hz" {
   description = "Hostzone domain name"
 }
+
 variable "record_type" {
   description = "The record type"
 }
