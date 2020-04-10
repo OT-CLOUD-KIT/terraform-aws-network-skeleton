@@ -233,7 +233,10 @@ Check out these related projects.
 
 ### Contributors
 
-[![Sudipt Sharma][sudipt_avatar]][sudipt_homepage]<br/>[Sudipt Sharma][sudipt_homepage] 
+|  [![Sudipt Sharma][sudipt_avatar]][sudipt_homepage]<br/>[Sudipt Sharma][sudipt_homepage] | [![Abhishek Vishwakarma][abhishek_avatar]][abhishek_homepage]<br/>[Abhishek Vishwakarma][abhishek_homepage] |
+|---|---|---|  
 
   [sudipt_homepage]: https://github.com/iamsudipt
   [sudipt_avatar]: https://img.cloudposse.com/75x75/https://github.com/iamsudipt.png
+  [abhishek_homepage]: https://github.com/oo4abhishek.png
+  [abhishek_avatar]: https://img.cloudposse.com/75x75/https://github.com/oo4abhishek.png
