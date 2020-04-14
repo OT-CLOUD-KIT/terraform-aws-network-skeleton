@@ -160,7 +160,8 @@ variable "whitelist_ssh_ip" {
 }
 
 variable "certificate_arn" {
-  description = " The ARN of the default SSL server certificate"
+  description = "The ARN of the default SSL server certificate"
+  default     = ""
 }
 
 variable "require_hosted_zone" {
