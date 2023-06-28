@@ -10,22 +10,19 @@ AWS Network Skeleton Terraform module
 
 Terraform module which creates network skeleton on AWS.
 
-These types of resources are supported:
-
-* [VPC](https://www.terraform.io/docs/providers/aws/r/vpc.html)
-* [Subnet](https://www.terraform.io/docs/providers/aws/r/subnet.html)
-* [Route](https://www.terraform.io/docs/providers/aws/r/route.html)
-* [Route table](https://www.terraform.io/docs/providers/aws/r/route_table.html)
-* [Internet Gateway](https://www.terraform.io/docs/providers/aws/r/internet_gateway.html)
-* [Network ACL](https://www.terraform.io/docs/providers/aws/r/network_acl.html)
-* [NAT Gateway](https://www.terraform.io/docs/providers/aws/r/nat_gateway.html)
-* [Application Load Balancer](https://www.terraform.io/docs/providers/aws/r/lb.html)
-* [Security Groups](https://www.terraform.io/docs/providers/aws/r/security_group.html)
 
 Terraform versions
 ------------------
+Terraform 0.14.9
 
-Terraform 0.12.
+Resources
+------
+| Name | Type |
+|------|------|
+| [aws_vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | Resource |
+| [aws_flow_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/flow_log) | Resource |
+| [aws_internet_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | Resource |
+| [aws_route53_zone](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | Resource |
 
 Usage
 ------
@@ -36,130 +33,31 @@ provider "aws" {
 }
 
 module "network_skeleton" {
-  source = "../"
-
-  name = "opstree"
-  cidr_block = "10.0.0.0/24"
-  instance_tenancy = "default"
-  enable_dns_support = true
-  enable_dns_hostnames = false
-  enable_classiclink = false
-
-  public_sub_az = ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  public_subnet_cidr = ["10.0.0.0/27","10.0.0.32/27","10.0.0.64/27"]
-  map_public_ip_on_launch = true
-  
-  nacl_egress_rule_no = 200
-  nacl_egress_protocol = "tcp"
-  nacl_egress_action = "allow"
-  nacl_egress_from_port = [80,443]
-  nacl_egress_to_port = [80,443]
-  
-  nacl_ingress_rule_no = 100
-  nacl_ingress_protocol = "tcp"
-  nacl_ingress_action = "allow"
-  nacl_ingress_from_port = [80,443]
-  nacl_ingress_to_port = [80,443]
-  
-  sg_egress_from_port = [443,80]
-  sg_egress_to_port = [443,80]
-
-  sg_ingress_from_port = [443,80]
-  sg_ingress_to_port = [443,80]
-  
-  whitelist_ssh_ip = ["171.76.32.5/32","191.23.54.23/32"]
-  
-  certificate_arn = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4"
-  
-  require_hosted_zone = true
-  name_hz  = "opstree.com"
-  record_type = "A"
-
-  tags = {
-    Terraform = "true"
-    Environment = "dev"
-  }
-  vpc_tags = {
-    key1 = "value1"
-    key2 = "value2"
-  }  
-}
-
-```
-
-```
-output "vpc_id" {
-  value       = module.network_skeleton.vpc_id
-}
-
-output "vpc_arn" {
-  value       = module.network_skeleton.arn
-}
-
-output "default_network_acl_id" {
-  value       = module.network_skeleton.default_network_acl_id
-}
-
-output "default_route_table_id" {
-  value       = module.network_skeleton.default_route_table_id
-}
-
-output "default_security_group_id" {
-  value       = module.network_skeleton.default_security_group_id
-}
-
-output "dhcp_options_id" {
-  value       = module.network_skeleton.dhcp_options_id
-}
-
-output "network_skeleton_route_table_id" {
-  value       = module.network_skeleton.main_route_table_id
-}
-
-output "owner_id" {
-  value       = module.network_skeleton.owner_id
-}
-
-output "igw_id" {
-  value       = module.network_skeleton.igw_id
-}
-
-output "main_route_table_id" {
-  value       = module.network_skeleton.main_route_table_id
-}
-
-output "public_sub_id" {
-  value       = module.network_skeleton.public_sub_id
-}
-
-output "public_subnet_arn" {
-  value       = module.network_skeleton.public_subnet_arn
-}
-
-output "elastic_ip_id"{
-  value       = module.network_skeleton.elastic_ip_id
-}
-
-output "ngw_id" {
-  value       = module.network_skeleton.ngw_id
-}
-
-output "network_acl_id"{
-  value       = module.network_skeleton.network_acl_id
-}
-
-output "alb_id" {
-  value       = module.network_skeleton.alb_id
-}
-
-output "web_security_group_id" {
-  value       = module.network_skeleton.web_security_group_id
-}
-
-output "ssh_security_group_id" {
-  value       = module.network_skeleton.ssh_security_group_id
+  source                                               = "../"
+  name                                                 = "network-skeleton"
+  cidr_block                                           = "173.31.0.0/20"
+  enable_dns_hostnames                                 = true
+  enable_vpc_logs                                      = false
+  public_subnets_cidr                                  = ["pvt_subnet_cidr"]
+  pvt_zone_name                                        = "abc.xyz.in"
+  private_subnets_cidr                                 = ["pub_subnet_cidr"]
+  avaialability_zones                                  = ["avaialability_zones"]
+  logs_bucket                                          = "ns-alb-logs"
+  logs_bucket_arn                                      = "logs_bucket_arn"
+  tags                                                 = "Additional tags"
+  public_web_sg_name                                   = ns-web-sg
+  alb_certificate_arn                                  = "ACM certificate arn"
+  enable_igw_publicRouteTable_PublicSubnets_resource   = false
+  enable_nat_privateRouteTable_PrivateSubnets_resource = false
+  enable_public_web_security_group_resource            = false
+  enable_pub_alb_resource                              = false
+  enable_aws_route53_zone_resource                     = false
 }
 ```
+**Note: Like all the enable resource variables (last 5) are set to false in module, It will only create VPC.**
+
+**For more information, you can check example folder.**
+
 Tags
 ----
 * Tags are assigned to resources with name variable as prefix.
@@ -175,68 +73,52 @@ Inputs
 | enable_dns_support | A dns support for instances launched into the VPC | `boolean` | `"true"` | no |
 | enable_dns_hostnames | A dns hostname for instances launched into the VPC | `boolean` | `"false"` | no |
 | enable_classiclink |A dns classiclink for instances launched into the VPC | `boolean` | `"false"` | no |
-| public_sub_az | A list of availability zones names in the region | `list(string)` | `[]` | no |
-| public_subnet_cidr | A list of CIDR block for the subnets in VPC. | `list(string)` | `[]` | no |
-| map_public_ip_on_launch | Map public ip with instance on launch into the VPC | `boolean` | `true` | no |
-| nacl_egress_rule_no | The subnets outbound network ACL rule number | `string` | `"200"` | no |
-| nacl_egress_protocol | The subnets outbound network ACL protocol to follow | `string` | `"tcp"` | no |
-| nacl_egress_action | The subnets outbound network ACL action for allow and deny rule | `string` | `"allow"` | no |
-| nacl_egress_from_port | The subnets outbound network ACL from port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_egress_to_port | The subnets outbound network ACL to port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_ingress_rule_no | The subnets inbound network ACL rule number | `string` | `"100"` | no |
-| nacl_ingress_protocol | The subnets inbound network ACL protocol to follow | `string` | `"tcp"` | no |
-| nacl_ingress_action |  The subnets inbound network ACL action for allow and deny rule | `string` | `"allow"` | no |
-| nacl_ingress_from_port | The subnets inbound network ACL from port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_ingress_to_port | The subnets inbound network ACL to port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_egress_from_port | The outbound security on instance from port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_egress_to_port | The outbound security on instance to port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_ingress_from_port | The inbound security on instance from port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_ingress_to_port | The inbound security on instance to port range that follows rule | `list(string)` | `"[]"` | no |
-| whitelist_ssh_ip | The ips allowed for ssh on instance associate with security group | `list(string)` | `"[]"` | no |
-| certificate_arn | The certicate arn for https enable in aws | `string` | `""` | yes |
-| require_hosted_zone | The boolean value required to create public hosted zone | `boolean` | `"true"` | no |
-| name_hz | The domain name reqired for public hosted zone | `string` | `""` | yes |
-| record_type | The certicate arn for https enable in aws | `string` | `""` | yes |
+| enable_igw_publicRouteTable_PublicSubnets_resource | This variable is used to create IGW, Public Route Table and Public Subnets | `boolean` | `"True"` | no |
+| enable_nat_privateRouteTable_PrivateSubnets_resource |This variable is used to create NAT, Private Route Table and Private Subnets | `boolean` | `"True"` | no |
+| enable_public_web_security_group_resource | This variable is to create Web Security Group | `boolean` | `"True"` | no |
+| enable_pub_alb_resource | This variable is to create ALB | `boolean` | `"True"` | no |
+| enable_aws_route53_zone_resource | This variable is to create Route 53 Zone | `boolean` | `"True"` | no |
+
 
 Output
 ------
 | Name | Description |
 |------|-------------|
 | vpc_id | The ID of the VPC |
-| arn | The arn of the VPC |
-| default_network_acl_id | The default_network_acl_id of the VPC |
-| default_route_table_id | The default_route_table_id of the VPC |
-| default_security_group_id | The default_security_group_id of the VPC |
-| dhcp_options_id | The dhcp_options_id of the VPC |
-| main_route_table_id | The main_route_table_id of the VPC |
-| owner_id | The owner_id of the VPC |
-| igw_id | The id of the IGW attached to VPC |
-| public_sub_id | The id of public subnets |
-| public_subnet_arn | The arn of public subnets |
-| elastic_ip_id | The elastic_ip_id of the VPC |
-| ngw_id | The id of the NGW attached to VPC |
-| network_acl_id | The network_acl_id of the VPC |
-| alb_id | The id of the Application load balancer attached to VPC |
-| web_security_group_id| The web_security_group_id of the VPC |
-| ssh_security_group_id | The ssh_security_group_id to whitelist ip in the VPC |
+| pub_route_table_id | Public route table ID's |
+| pvt_route_table_id | Private Route table ID's |
+| pvt_hosted_zone_id | Private Hosted zone ID's |
+| pvt_subnet_ids | Private Subnet table ID's |
+| public_subnet_ids | Public Subnet table ID's |
+| web_sg_id | Public Security Group table ID's |
+| dns_name | DNS of ALB |
+| aws_lb_arn | arn of ALB |
+| alb_listener_arn | ARN of alb listener |
+| alb_listener1_arn | ARN of alb listener-1 |
+| route53_name | Domain Name of Route 53 private hosted zone |
+
 
 ## Related Projects
 
-Check out these related projects.
+* [route-table](https://registry.terraform.io/modules/OT-CLOUD-KIT/route-table/aws/latest?tab=inputs)
+* [subnet](https://registry.terraform.io/modules/OT-CLOUD-KIT/subnet/aws/latest) 
+* [nat-gateway](https://registry.terraform.io/modules/OT-CLOUD-KIT/nat-gateway/aws/latest) 
+* [security-groups](https://registry.terraform.io/modules/OT-CLOUD-KIT/security-groups/aws/latest)
+* [alb](https://registry.terraform.io/modules/OT-CLOUD-KIT/alb/aws/latest)
 
-- [HA_ec2_ALB](https://gitlab.com/ot-aws/terrafrom_v0.12.21/network_skeleton) -  Terraform module for createing a Highly available setup of an EC2 instance with quick disater recovery.
-- [security_group](https://gitlab.com/ot-aws/terrafrom_v0.12.21/security_group) - Terraform module for creating dynamic Security groups
-- [eks](https://gitlab.com/ot-aws/terrafrom_v0.12.21/eks) - Terraform module for creating elastic kubernetes cluster.
-- [rds](https://gitlab.com/ot-aws/terrafrom_v0.12.21/rds) - Terraform module for creating Relation Datbase service.
-- [HA_ec2](https://gitlab.com/ot-aws/terrafrom_v0.12.21/ha_ec2.git) - Terraform module for creating a Highly available setup of an EC2 instance with quick disater recovery.
-- [rolling_deployment](https://gitlab.com/ot-aws/terrafrom_v0.12.21/rolling_deployment.git) - This terraform module will orchestrate rolling deployment.
+##Additional Requirements
+----
+* Option to create NAT gateway for each AZ.
 
 ### Contributors
 
-|  [![Sudipt Sharma][sudipt_avatar]][sudipt_homepage]<br/>[Sudipt Sharma][sudipt_homepage] | [![Abhishek Vishwakarma][abhishek_avatar]][abhishek_homepage]<br/>[Abhishek Vishwakarma][abhishek_homepage] |
-|---|---|
+|  [![Sudipt Sharma][sudipt_avatar]][sudipt_homepage]<br/>[Sudipt Sharma][sudipt_homepage] | [![Devesh Sharma][devesh_avataar]][devesh_homepage]<br/>[Devesh Sharma][devesh_homepage] | [![Rishabh Sharma][rishabh_avatar]][rishabh_homepage]<br/>[Rishabh Sharma][rishabh_homepage]
+|---|---|---|
 
   [sudipt_homepage]: https://github.com/iamsudipt
   [sudipt_avatar]: https://img.cloudposse.com/75x75/https://github.com/iamsudipt.png
-  [abhishek_homepage]: https://github.com/oo4abhishek.png
-  [abhishek_avatar]: https://img.cloudposse.com/75x75/https://github.com/oo4abhishek.png
+  [devesh_homepage]: https://github.com/deveshs23
+  [devesh_avataar]: https://img.cloudposse.com/75x75/https://github.com/deveshs23.png
+  [rishabh_homepage]: https://www.linkedin.com/in/rishabh-sharma-b4a0b3152
+  [rishabh_avatar]: https://img.cloudposse.com/75x75/https://github.com/rishabhhsharmaa.png
+

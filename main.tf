@@ -1,242 +1,141 @@
-/*-------------------------------------------------------*/
 resource "aws_vpc" "main" {
-  cidr_block                       = var.cidr_block
-  instance_tenancy                 = var.instance_tenancy
-  enable_dns_support               = var.enable_dns_support
-  enable_dns_hostnames             = var.enable_dns_hostnames
-  enable_classiclink               = var.enable_classiclink
-  enable_classiclink_dns_support   = var.enable_classiclink_dns_support
+  cidr_block           = var.cidr_block
+  instance_tenancy     = var.instance_tenancy
+  enable_dns_support   = var.enable_dns_support
+  enable_dns_hostnames = var.enable_dns_hostnames
 
   tags = merge(
     {
-      "Name" = format("%s", var.name)
+      "Name" = format("%s", var.vpc_name)
     },
-    var.vpc_tags,
+    var.tags,
   )
 }
-/*-------------------------------------------------------*/
+
+resource "aws_flow_log" "vpc_flow_logs" {
+  count                = var.enable_vpc_logs == true ? 1 : 0
+  log_destination      = var.logs_bucket_arn
+  log_destination_type = var.log_destination_type
+  traffic_type         = var.traffic_type
+  vpc_id               = aws_vpc.main.id
+}
+
 resource "aws_internet_gateway" "igw" {
+  count  = var.enable_igw_publicRouteTable_PublicSubnets_resource == true ? 1 : 0
   vpc_id = aws_vpc.main.id
-
   tags = merge(
     {
-      "Name" = format("%s-igw", var.name)
+      "Name" = format("%s", var.igw_name)
     },
     var.tags,
   )
 }
-/*-------------------------------------------------------*/
-resource "aws_route_table" "route_table" {
-  vpc_id = aws_vpc.main.id
-  tags = merge(
-    {
-      "Name" = format("%s-rt", var.name)
-    },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_route" "route" {
-  route_table_id         = aws_route_table.route_table.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-}
-/*-------------------------------------------------------*/
-resource "aws_main_route_table_association" "main_route_table" {
-  vpc_id         = aws_vpc.main.id
-  route_table_id = aws_route_table.route_table.id
-}
-/*-------------------------------------------------------*/
-resource "aws_subnet" "public" {
-  count                   = length(var.public_subnet_cidr)
-  availability_zone       = element(var.public_sub_az, count.index % length(var.public_sub_az))
-  cidr_block              = element(var.public_subnet_cidr, count.index)
-  map_public_ip_on_launch = var.map_public_ip_on_launch
-  vpc_id                  = aws_vpc.main.id
 
-  tags = merge(
-    {
-    Type = "Public"
-    Name = format("%s-subnet-%d", var.name,count.index+1)
-  },
-    var.tags,
-  )
+module "publicRouteTable" {
+  count      = var.enable_igw_publicRouteTable_PublicSubnets_resource == true ? 1 : 0
+  source     = "OT-CLOUD-KIT/route-table/aws"
+  version    = "0.0.1"
+  cidr       = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.igw[count.index].id
+  name    = format("%s", var.pub_rt_name)
+  vpc_id     = aws_vpc.main.id
+  tags       = var.tags
 }
 
-/*-------------------------------------------------------*/
-resource "aws_route_table_association" "public_rt_asso" {
-  count          = length(var.public_subnet_cidr)
-  subnet_id      = element(aws_subnet.public.*.id, count.index)
-  route_table_id = aws_route_table.route_table.id
+module "PublicSubnets" {
+  count              = var.enable_igw_publicRouteTable_PublicSubnets_resource == true ? 1 : 0
+  source             = "OT-CLOUD-KIT/subnet/aws"
+  version            = "0.0.2"
+  availability_zones = var.avaialability_zones
+  subnet_name        = format("%s", var.pub_subnet_name)
+  route_table_id     = module.publicRouteTable[count.index].id
+  subnets_cidr       = var.public_subnets_cidr
+  vpc_id             = aws_vpc.main.id
+  tags               = var.tags
 }
 
-/*-------------------------------------------------------*/
-resource "aws_eip" "Eip" {
-  vpc = true
+module "nat-gateway" {
+  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+  source             = "OT-CLOUD-KIT/nat-gateway/aws"
+  version            = "0.0.2"
+  subnets_for_nat_gw = module.PublicSubnets[count.index].ids
+  nat_name           = var.nat_name
+  tags               = var.tags
 }
-/*-------------------------------------------------------*/
-resource "aws_nat_gateway" "ngw" {
-  allocation_id = aws_eip.Eip.id
-  subnet_id     = element(aws_subnet.public.*.id,0)
-  tags = merge(
-    {
-    Name = format("%s-nat", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_network_acl" "network_acl" {
-  vpc_id = aws_vpc.main.id
-  tags = merge(
-    {
-    Name = format("%s-nacl", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_network_acl_rule" "network_acl_egress_rule" {
-  count          = length(var.nacl_egress_to_port)
-  network_acl_id = aws_network_acl.network_acl.id
-  rule_number    = var.nacl_egress_rule_no+count.index
-  egress         = true
-  protocol       = var.nacl_egress_protocol
-  rule_action    = var.nacl_egress_action
-  cidr_block     = var.cidr_block
-  from_port      = element(var.nacl_egress_from_port,count.index)
-  to_port        = element(var.nacl_egress_to_port,count.index)
-}
-/*-------------------------------------------------------*/
-resource "aws_network_acl_rule" "network_acl_ingress_rule" {
-  count          = length(var.nacl_ingress_to_port)
-  network_acl_id = aws_network_acl.network_acl.id
-  rule_number    = var.nacl_ingress_rule_no+count.index
-  egress         = false
-  protocol       = var.nacl_ingress_protocol
-  rule_action    = var.nacl_ingress_action
-  cidr_block     = var.cidr_block
-  from_port      = element(var.nacl_ingress_from_port,count.index)
-  to_port        = element(var.nacl_ingress_to_port,count.index)
-}
-/*-------------------------------------------------------*/
-resource "aws_lb" "alb"{
-  name                 = format("%s-lb", var.name)
-  internal             = false
-  load_balancer_type   = "application"
-  security_groups      = aws_security_group.web_sg.*.id
-  subnets              = aws_subnet.public.*.id
-  tags = merge(
-    {
-    Name = format("%s-alb", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_lb_listener" "https_front_end" {
-  load_balancer_arn = aws_lb.alb.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.certificate_arn
 
-  default_action {
-    type            = "fixed-response"
-    fixed_response {
-      content_type  = "text/plain"
-      message_body  = "Fixed response content"
-      status_code   = "200"
+module "privateRouteTable" {
+  count      = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+  source     = "OT-CLOUD-KIT/route-table/aws"
+  version    = "0.0.1"
+  cidr       = "0.0.0.0/0"
+  gateway_id = module.nat-gateway[count.index].ngw_id
+  name       = format("%s", var.pvt_rt_ame)
+  vpc_id     = aws_vpc.main.id
+  tags       = var.tags
+}
+
+module "PrivateSubnets" {
+  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+  source             = "OT-CLOUD-KIT/subnet/aws"
+  version            = "0.0.2"
+  availability_zones = var.avaialability_zones
+  subnet_name        = format("%s", var.pvt_subnet_name)
+  route_table_id     = module.privateRouteTable[count.index].id
+  subnets_cidr       = var.private_subnets_cidr
+  vpc_id             = aws_vpc.main.id
+  tags               = var.tags
+}
+
+module "public_web_security_group" {
+  count               = var.enable_public_web_security_group_resource == true ? 1 : 0
+  source              = "OT-CLOUD-KIT/security-groups/aws"
+  version             = "1.0.0"
+  enable_whitelist_ip = true
+  name_sg             = var.public_web_sg_name
+  vpc_id              = aws_vpc.main.id
+  ingress_rule = {
+    rules = {
+      rule_list = [
+        {
+          description  = "Rule for port 80"
+          from_port    = 80
+          to_port      = 80
+          protocol     = "tcp"
+          cidr         = ["0.0.0.0/0"]
+          source_SG_ID = []
+        },
+        {
+          description  = "Rule for port 443"
+          from_port    = 443
+          to_port      = 443
+          protocol     = "tcp"
+          cidr         = ["0.0.0.0/0"]
+          source_SG_ID = []
+        }
+      ]
     }
   }
 }
-/*-------------------------------------------------------*/
-resource "aws_lb_listener" "http_front_end" {
-  load_balancer_arn = aws_lb.alb.arn
-  port              = "80"
-  protocol          = "HTTP"
 
-  default_action {
-    type          = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
+module "pub_alb" {
+  count                      = var.enable_pub_alb_resource == true ? 1 : 0
+  source                     = "OT-CLOUD-KIT/alb/aws"
+  version                    = "0.0.4"
+  alb_name                   = var.alb_name
+  internal                   = var.alb_type
+  logs_bucket                = var.logs_bucket
+  security_groups_id         = [module.public_web_security_group[count.index].sg_id]
+  subnets_id                 = var.alb_type == false ? module.PublicSubnets[count.index].ids : module.PrivateSubnets[count.index].ids
+  tags                       = var.tags
+  enable_logging             = var.enable_alb_logging
+  enable_deletion_protection = var.enable_deletion_protection
+  alb_certificate_arn        = var.alb_certificate_arn
 }
-/*-------------------------------------------------------*/
-resource "aws_security_group" "web_sg" {
-  name         = format("%s-web_sg", var.name)
-  description  = "Web security group"
-  vpc_id                           = aws_vpc.main.id
-  tags = merge(
-    {
-    Name = format("%s-web_sg", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_security_group_rule" "sg_egress" {
-  count             = length(var.sg_egress_to_port)
-  type              = "egress"
-  from_port         = element(var.sg_egress_from_port,count.index)
-  to_port           = element(var.sg_egress_to_port,count.index)
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_sg.id
-}
-/*-------------------------------------------------------*/
-resource "aws_security_group_rule" "sg_ingress" {
-  count             = length(var.sg_ingress_to_port)
-  type              = "ingress"
-  from_port         = element(var.sg_ingress_from_port,count.index)
-  to_port           = element(var.sg_ingress_to_port,count.index)
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_sg.id
-}
-/*-------------------------------------------------------*/
-resource "aws_security_group" "ssh_sg" {
-  name        = format("%s-ssh_sg", var.name)
-  description = "SSH security group"
-  vpc_id      = aws_vpc.main.id
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = var.whitelist_ssh_ip
-  }
-  tags = merge(
-    {
-    Name = format("%s-ssh_sg", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_route53_zone" "public" {
-  count = var.require_hosted_zone ? 1:0
-  name  = var.name_hz
 
-  tags = merge(
-    {
-    Name = format("%s-ssh_sg", var.name)
-  },
-    var.tags,
-  )
-}
-/*-------------------------------------------------------*/
-resource "aws_route53_record" "public_record" {
-  count   = var.require_hosted_zone ? 1:0
-  zone_id = aws_route53_zone.public[0].zone_id
-  name    = var.name_hz
-  type    = var.record_type
-  
-  alias {
-    name                   = aws_lb.alb.dns_name
-    zone_id                = aws_lb.alb.zone_id
-    evaluate_target_health = true
+resource "aws_route53_zone" "private_hosted_zone" {
+  count = var.enable_aws_route53_zone_resource == true ? 1 : 0
+  name  = var.pvt_zone_name
+  vpc {
+    vpc_id = aws_vpc.main.id
   }
 }
