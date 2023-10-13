@@ -21,7 +21,12 @@ variable "public_subnets_cidr" {
   type        = list(string)
 }
 
-variable "private_subnets_cidr" {
+variable "App_private_subnets_cidr" {
+  description = "CIDR list for private subnet"
+  type        = list(string)
+}
+
+variable "DB_private_subnets_cidr" {
   description = "CIDR list for private subnet"
   type        = list(string)
 }
@@ -148,7 +153,12 @@ variable "pvt_rt_ame" {
   description = "Name of Pvt Rpoute table"
 }
 
-variable "pvt_subnet_name" {
+variable "DB_pvt_subnet_name" {
+  type        = string
+  description = "Name of private subnets"
+}
+
+variable "App_pvt_subnet_name" {
   type        = string
   description = "Name of private subnets"
 }

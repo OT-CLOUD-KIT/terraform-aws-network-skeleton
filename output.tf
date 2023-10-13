@@ -18,8 +18,12 @@ output "pvt_hosted_zone_id" {
   value       = aws_route53_zone.private_hosted_zone.*.zone_id
 }
 
-output "pvt_subnet_ids" {
-  value = module.PrivateSubnets.*.ids
+output "DBpvt_subnet_ids" {
+  value = module.DBPrivateSubnets.*.ids
+}
+
+output "Apppvt_subnet_ids" {
+  value = module.AppPrivateSubnets.*.ids
 }
 
 output "public_subnet_ids" {
