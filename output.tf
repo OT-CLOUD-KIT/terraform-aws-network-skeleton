@@ -23,7 +23,7 @@ output "DBpvt_subnet_ids" {
 }
 
 output "DBpvt_subnet_ids1" {
-  value = module.DBPrivateSubnets.*.ids
+  value = module.DBPrivateSubnets1.*.ids
 }
 
 output "Apppvt_subnet_ids" {
