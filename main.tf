@@ -66,7 +66,7 @@ module "PublicSubnets" {
 
 module "nat-gateway" {
  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
- source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-subnet.git?ref=myfojo-nat"
+ source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-nat-gateway.git?ref=myfojo-nat"
 # version            = "0.0.2"
  subnets_for_nat_gw = module.PublicSubnets[count.index].ids
  nat_name           = var.nat_name
