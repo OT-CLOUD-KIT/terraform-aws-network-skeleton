@@ -51,7 +51,7 @@ module "PublicSubnets" {
  count              = var.enable_igw_publicRouteTable_PublicSubnets_resource == true ? 1 : 0
  source             = "OT-CLOUD-KIT/subnet/aws"
  version            = "0.0.2"
- availability_zones = var.avaialability_zones
+ availability_zones = concat(var.availability_zones, var.availability_zones1)
  subnet_name        = format("%s", var.pub_subnet_name)
  route_table_id     = module.publicRouteTable[count.index].id
  subnets_cidr       = var.public_subnets_cidr
