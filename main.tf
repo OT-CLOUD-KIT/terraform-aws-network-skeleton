@@ -60,12 +60,55 @@ module "PublicSubnets" {
 }
 
 
-
-
-
-
 module "nat-gateway" {
- count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+ count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
+ #source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-nat-gateway.git?ref=myfojo-nat"
+ source             = "OT-CLOUD-KIT/nat-gateway/aws"
+ version            = "0.0.2"
+# version            = "0.0.2"
+ subnets_for_nat_gw = module.PublicSubnets[count.index].ids
+ nat_name           = var.nat_name
+ tags               = var.tags
+}
+
+
+module "privateRouteTable" {
+  count      = var.enable_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
+  source     = "OT-CLOUD-KIT/route-table/aws"
+  version    = "0.0.1"
+  cidr       = "0.0.0.0/0"
+  gateway_id = module.nat-gateway[count.index].ngw_id
+  name       = format("%s", var.pvt_rt_ame)
+  vpc_id     = aws_vpc.main.id
+  tags       = var.tags
+}
+
+module "AppPrivateSubnets" {
+  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
+  source             = "OT-CLOUD-KIT/subnet/aws"
+  version            = "0.0.2"
+  availability_zones = var.avaialability_zones
+  subnet_name        = format("%s", var.App_pvt_subnet_name)
+  route_table_id     = module.privateRouteTable[count.index].id
+  subnets_cidr       = var.App_private_subnets_cidr
+  vpc_id             = aws_vpc.main.id
+  tags               = var.tags
+}
+
+module "DBPrivateSubnets" {
+  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
+  source             = "OT-CLOUD-KIT/subnet/aws"
+  version            = "0.0.2"
+  availability_zones = var.avaialability_zones
+  subnet_name        = format("%s", var.DB_pvt_subnet_name)
+  route_table_id     = module.privateRouteTable[count.index].id
+  subnets_cidr       = var.DB_private_subnets_cidr
+  vpc_id             = aws_vpc.main.id
+  tags               = var.tags
+}
+
+module "nat-gateway1" {
+ count              = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-nat-gateway.git?ref=myfojo-nat"
 # version            = "0.0.2"
  subnets_for_nat_gw = module.PublicSubnets[count.index].ids
@@ -74,10 +117,10 @@ module "nat-gateway" {
 }
 
 
-# 
 
-module "privateRouteTable" {
- count      = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+
+module "privateRouteTable2" {
+ count      = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source     = "OT-CLOUD-KIT/route-table/aws"
  version    = "0.0.2"
  #cidr       = "0.0.0.0/0"
@@ -85,14 +128,14 @@ module "privateRouteTable" {
  name       = format("%s", var.pvt_rt_ame)
  vpc_id     = aws_vpc.main.id
  routes = {
-       "0.0.0.0/0" = module.nat-gateway[0].ngw_id
+       "0.0.0.0/0" = module.nat-gateway1[0].ngw_id
    }
  tags       = var.tags
 }
 
 
 module "privateRouteTable1" {
- count      = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+ count      = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source     = "OT-CLOUD-KIT/route-table/aws"
  version    = "0.0.2"
  #cidr       = "0.0.0.0/0"
@@ -100,22 +143,22 @@ module "privateRouteTable1" {
  name       = "${format("%s", var.pvt_rt_ame)}-1"
  vpc_id     = aws_vpc.main.id
  routes = {
-       "0.0.0.0/0" = module.nat-gateway[0].ngw_id1
+       "0.0.0.0/0" = module.nat-gateway1[0].ngw_id1
    }
   tags       = var.tags
 }
 
 
 
-module "AppPrivateSubnets" {
+module "AppPrivateSubnets2" {
 #count = length(var.avaialability_zones)
-  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+  count              = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-subnet.git?ref=myfojo-subnet"
  #version            = "0.0.2"
  availability_zones = var.avaialability_zones
  subnet_name        = "${format("%s", var.App_pvt_subnet_name)}-1"
  # route_table_id     = module.privateRouteTable[count.index].id
- route_table_id = module.privateRouteTable[0].id
+ route_table_id = module.privateRouteTable2[0].id
  subnets_cidr       = var.App_private_subnets_cidr
  vpc_id             = aws_vpc.main.id
  tags               = var.tags
@@ -127,7 +170,7 @@ module "AppPrivateSubnets" {
 
 module "AppPrivateSubnets1" {
 #count = length(var.avaialability_zones)
-  count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+  count              = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-subnet.git?ref=myfojo-subnet"
  #version            = "0.0.2"
  availability_zones = var.avaialability_zones1
@@ -140,20 +183,20 @@ module "AppPrivateSubnets1" {
 }
 
 
-module "DBPrivateSubnets" {
- count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+module "DBPrivateSubnets2" {
+ count              = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-subnet.git?ref=myfojo-subnet"
  #version            = "0.0.2"
  availability_zones = var.avaialability_zones
  subnet_name        = "${format("%s", var.DB_pvt_subnet_name)}-1"
- route_table_id     = module.privateRouteTable[0].id
+ route_table_id     = module.privateRouteTable2[0].id
  subnets_cidr       = var.DB_private_subnets_cidr
  vpc_id             = aws_vpc.main.id
  tags               = var.tags
 }
 
 module "DBPrivateSubnets1" {
- count              = var.enable_nat_privateRouteTable_PrivateSubnets_resource == true ? 1 : 0
+ count              = var.enable_multiple_nat_privateRouteTable_PrivateSubnets_resource ? 1 : 0
  source             = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-subnet.git?ref=myfojo-subnet"
  availability_zones = var.avaialability_zones1
  subnet_name        = "${format("%s", var.DB_pvt_subnet_name)}-2"
