@@ -26,6 +26,10 @@ output "DBpvt_subnet_ids1" {
   value = module.DBPrivateSubnets1.*.ids
 }
 
+output "DBpvt_subnet_ids2" {
+  value = module.DBPrivateSubnets2.*.ids
+}
+
 output "Apppvt_subnet_ids" {
   value = module.AppPrivateSubnets.*.ids
 }
@@ -33,6 +37,11 @@ output "Apppvt_subnet_ids" {
 output "Apppvt_subnet_ids1" {
   value = module.AppPrivateSubnets1.*.ids
 }
+
+output "Apppvt_subnet_ids2" {
+  value = module.AppPrivateSubnets1.*.ids
+}
+
 
 output "public_subnet_ids" {
   value = module.PublicSubnets.*.ids
