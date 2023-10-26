@@ -39,7 +39,7 @@ output "Apppvt_subnet_ids1" {
 }
 
 output "Apppvt_subnet_ids2" {
-  value = module.AppPrivateSubnets1.*.ids
+  value = module.AppPrivateSubnets2.*.ids
 }
 
 
