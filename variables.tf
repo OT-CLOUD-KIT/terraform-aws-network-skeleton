@@ -120,11 +120,7 @@ variable "enable_igw_publicRouteTable_PublicSubnets_resource" {
   default     = true
 }
 
-variable "enable_nat_privateRouteTable_PrivateSubnets_resource" {
-  type        = bool
-  description = "This variable is used to create NAT, Private Route Table and Private Subnets"
-  default     = true
-}
+
 
 variable "enable_public_web_security_group_resource" {
   type        = bool
@@ -190,4 +186,16 @@ variable "alb_type" {
   type        = bool
   description = "Type of ALB"
   default     = false
+}
+
+variable "enable_multiple_nat_privateRouteTable_PrivateSubnets_resource" {
+  description = "This variable is used to create multiple NAT, Private Route Table and Private Subnets"
+  type        = bool
+}
+
+
+
+variable "enable_nat_privateRouteTable_PrivateSubnets_resource" {
+  description = "This variable is used to create NAT, Private Route Table and Private Subnets"
+  type        = bool
 }
