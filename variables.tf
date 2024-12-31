@@ -40,6 +40,7 @@ variable "vpc_tags" {
 }
 
 variable "additional_public_routes" {
+  description = "List of public subnets routes with map"
   type = map(object({
     destination_cidr_block = string
     gateway_id             = string
@@ -90,7 +91,7 @@ variable "database_subnets_tags" {
 }
 
 variable "additional_private_routes" {
-  description = "List of private subnets with map"
+  description = "List of private subnets routes with map"
   type = list(object({
     destination_cidr_block = string
     gateway_id             = string
