@@ -1,242 +1,111 @@
-AWS Network Skeleton Terraform module
-=====================================
+## Terraform AWS Network Skeleton
 
-[![Opstree Solutions][opstree_avatar]][opstree_homepage]
+A terraform module which creates network skeleton on AWS with best practices in terms of network security, cost and optimization.
 
-[Opstree Solutions][opstree_homepage] 
+## Providers
 
-  [opstree_homepage]: https://opstree.github.io/
-  [opstree_avatar]: https://img.cloudposse.com/150x150/https://github.com/opstree.png
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.82.2 |
 
-Terraform module which creates network skeleton on AWS.
-
-These types of resources are supported:
-
-* [VPC](https://www.terraform.io/docs/providers/aws/r/vpc.html)
-* [Subnet](https://www.terraform.io/docs/providers/aws/r/subnet.html)
-* [Route](https://www.terraform.io/docs/providers/aws/r/route.html)
-* [Route table](https://www.terraform.io/docs/providers/aws/r/route_table.html)
-* [Internet Gateway](https://www.terraform.io/docs/providers/aws/r/internet_gateway.html)
-* [Network ACL](https://www.terraform.io/docs/providers/aws/r/network_acl.html)
-* [NAT Gateway](https://www.terraform.io/docs/providers/aws/r/nat_gateway.html)
-* [Application Load Balancer](https://www.terraform.io/docs/providers/aws/r/lb.html)
-* [Security Groups](https://www.terraform.io/docs/providers/aws/r/security_group.html)
-
-Terraform versions
-------------------
-
-Terraform 0.12.
-
-Usage
-------
+## Usage
 
 ```hcl
-provider "aws" {
-  region                  = "ap-south-1"
-}
-
-module "network_skeleton" {
-  source = "../"
-
-  name = "opstree"
-  cidr_block = "10.0.0.0/24"
-  instance_tenancy = "default"
-  enable_dns_support = true
-  enable_dns_hostnames = false
-  enable_classiclink = false
-
-  public_sub_az = ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  public_subnet_cidr = ["10.0.0.0/27","10.0.0.32/27","10.0.0.64/27"]
-  map_public_ip_on_launch = true
-  
-  nacl_egress_rule_no = 200
-  nacl_egress_protocol = "tcp"
-  nacl_egress_action = "allow"
-  nacl_egress_from_port = [80,443]
-  nacl_egress_to_port = [80,443]
-  
-  nacl_ingress_rule_no = 100
-  nacl_ingress_protocol = "tcp"
-  nacl_ingress_action = "allow"
-  nacl_ingress_from_port = [80,443]
-  nacl_ingress_to_port = [80,443]
-  
-  sg_egress_from_port = [443,80]
-  sg_egress_to_port = [443,80]
-
-  sg_ingress_from_port = [443,80]
-  sg_ingress_to_port = [443,80]
-  
-  whitelist_ssh_ip = ["171.76.32.5/32","191.23.54.23/32"]
-  
-  certificate_arn = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4"
-  
-  require_hosted_zone = true
-  name_hz  = "opstree.com"
-  record_type = "A"
-
+module "network-skeleton" {
+  source     = "../"
+  name       = "testing"
+  cidr_block = "10.10.0.0/16"
   tags = {
-    Terraform = "true"
-    Environment = "dev"
+    environment = "dev"
   }
   vpc_tags = {
-    key1 = "value1"
-    key2 = "value2"
-  }  
-}
-
-```
-
-```
-output "vpc_id" {
-  value       = module.network_skeleton.vpc_id
-}
-
-output "vpc_arn" {
-  value       = module.network_skeleton.arn
-}
-
-output "default_network_acl_id" {
-  value       = module.network_skeleton.default_network_acl_id
-}
-
-output "default_route_table_id" {
-  value       = module.network_skeleton.default_route_table_id
-}
-
-output "default_security_group_id" {
-  value       = module.network_skeleton.default_security_group_id
-}
-
-output "dhcp_options_id" {
-  value       = module.network_skeleton.dhcp_options_id
-}
-
-output "network_skeleton_route_table_id" {
-  value       = module.network_skeleton.main_route_table_id
-}
-
-output "owner_id" {
-  value       = module.network_skeleton.owner_id
-}
-
-output "igw_id" {
-  value       = module.network_skeleton.igw_id
-}
-
-output "main_route_table_id" {
-  value       = module.network_skeleton.main_route_table_id
-}
-
-output "public_sub_id" {
-  value       = module.network_skeleton.public_sub_id
-}
-
-output "public_subnet_arn" {
-  value       = module.network_skeleton.public_subnet_arn
-}
-
-output "elastic_ip_id"{
-  value       = module.network_skeleton.elastic_ip_id
-}
-
-output "ngw_id" {
-  value       = module.network_skeleton.ngw_id
-}
-
-output "network_acl_id"{
-  value       = module.network_skeleton.network_acl_id
-}
-
-output "alb_id" {
-  value       = module.network_skeleton.alb_id
-}
-
-output "web_security_group_id" {
-  value       = module.network_skeleton.web_security_group_id
-}
-
-output "ssh_security_group_id" {
-  value       = module.network_skeleton.ssh_security_group_id
+    vpc = "shared"
+  }
+  public_subnets = ["10.10.0.0/20", "10.10.16.0/20"]
+  azs            = ["us-west-2a", "us-west-2b"]
+  public_subnets_tags = {
+    subnet_type = "public"
+  }
+  private_subnets = ["10.10.32.0/20", "10.10.48.0/20"]
+  private_subnets_tags = {
+    subnet_type = "private"
+  }
+  database_subnets = ["10.10.64.0/20", "10.10.80.0/20"]
+  database_subnets_tags = {
+    subnet_type = "database"
+  }
+  additional_private_routes = [
+    {
+      destination_cidr_block = "20.0.0.0/16"
+      gateway_id             = "pxc-00a12c2c206403cfa"
+    }
+  ]
 }
 ```
-Tags
-----
-* Tags are assigned to resources with name variable as prefix.
-* Additial tags can be assigned by tags variables as defined above.
 
-Inputs
-------
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_eip.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
+| [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
+| [aws_main_route_table_association.default_public_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/main_route_table_association) | resource |
+| [aws_nat_gateway.nat_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
+| [aws_route.additional_private_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.additional_public_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.default_public_route](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.private_route_nat_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route53_zone.vpc_route53](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
+| [aws_route_table.private_route_table](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table.public_route_table](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table_association.database_route_table_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_route_table_association.private_route_table_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_route_table_association.public_subnets_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_subnet.database_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_subnet.private_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_subnet.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_vpc.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+
+## Inputs
+
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| name | The sting name append in tags | `string` | `"opstree"` | yes |
-| cidr_block | The CIDR block for the VPC. Default value is a valid CIDR  | `string` | `"10.0.0.0/24"` | no |
-| instance_tenancy | A tenancy option for instances launched into the VPC | `string` | `"default"` | no |
-| enable_dns_support | A dns support for instances launched into the VPC | `boolean` | `"true"` | no |
-| enable_dns_hostnames | A dns hostname for instances launched into the VPC | `boolean` | `"false"` | no |
-| enable_classiclink |A dns classiclink for instances launched into the VPC | `boolean` | `"false"` | no |
-| public_sub_az | A list of availability zones names in the region | `list(string)` | `[]` | no |
-| public_subnet_cidr | A list of CIDR block for the subnets in VPC. | `list(string)` | `[]` | no |
-| map_public_ip_on_launch | Map public ip with instance on launch into the VPC | `boolean` | `true` | no |
-| nacl_egress_rule_no | The subnets outbound network ACL rule number | `string` | `"200"` | no |
-| nacl_egress_protocol | The subnets outbound network ACL protocol to follow | `string` | `"tcp"` | no |
-| nacl_egress_action | The subnets outbound network ACL action for allow and deny rule | `string` | `"allow"` | no |
-| nacl_egress_from_port | The subnets outbound network ACL from port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_egress_to_port | The subnets outbound network ACL to port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_ingress_rule_no | The subnets inbound network ACL rule number | `string` | `"100"` | no |
-| nacl_ingress_protocol | The subnets inbound network ACL protocol to follow | `string` | `"tcp"` | no |
-| nacl_ingress_action |  The subnets inbound network ACL action for allow and deny rule | `string` | `"allow"` | no |
-| nacl_ingress_from_port | The subnets inbound network ACL from port range that follows rule | `list(string)` | `"[]"` | no |
-| nacl_ingress_to_port | The subnets inbound network ACL to port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_egress_from_port | The outbound security on instance from port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_egress_to_port | The outbound security on instance to port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_ingress_from_port | The inbound security on instance from port range that follows rule | `list(string)` | `"[]"` | no |
-| sg_ingress_to_port | The inbound security on instance to port range that follows rule | `list(string)` | `"[]"` | no |
-| whitelist_ssh_ip | The ips allowed for ssh on instance associate with security group | `list(string)` | `"[]"` | no |
-| certificate_arn | The certicate arn for https enable in aws | `string` | `""` | yes |
-| require_hosted_zone | The boolean value required to create public hosted zone | `boolean` | `"true"` | no |
-| name_hz | The domain name reqired for public hosted zone | `string` | `""` | yes |
-| record_type | The certicate arn for https enable in aws | `string` | `""` | yes |
+| <a name="input_additional_private_routes"></a> [additional\_private\_routes](#input\_additional\_private\_routes) | List of private subnets with map | <pre>list(object({<br/>    destination_cidr_block = string<br/>    gateway_id             = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_additional_public_routes"></a> [additional\_public\_routes](#input\_additional\_public\_routes) | n/a | <pre>map(object({<br/>    destination_cidr_block = string<br/>    gateway_id             = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_azs"></a> [azs](#input\_azs) | A list of availability zones names or ids in the region | `list(string)` | `[]` | no |
+| <a name="input_cidr_block"></a> [cidr\_block](#input\_cidr\_block) | The IPv4 CIDR block for the VPC. | `string` | `"10.0.0.0/16"` | no |
+| <a name="input_database_subnets"></a> [database\_subnets](#input\_database\_subnets) | A list of database subnets inside the VPC | `list(string)` | `[]` | no |
+| <a name="input_database_subnets_tags"></a> [database\_subnets\_tags](#input\_database\_subnets\_tags) | Additional tags for the database subnets | `map(string)` | `{}` | no |
+| <a name="input_enable_network_address_usage_metrics"></a> [enable\_network\_address\_usage\_metrics](#input\_enable\_network\_address\_usage\_metrics) | Determines whether network address usage metrics are enabled for the VPC | `bool` | `false` | no |
+| <a name="input_instance_tenancy"></a> [instance\_tenancy](#input\_instance\_tenancy) | A tenancy option for instances launched into the VPC | `string` | `"default"` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name to be used on all the resources as identifier | `string` | n/a | yes |
+| <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | A list of private subnets inside the VPC | `list(string)` | `[]` | no |
+| <a name="input_private_subnets_tags"></a> [private\_subnets\_tags](#input\_private\_subnets\_tags) | Additional tags for the private subnets | `map(string)` | `{}` | no |
+| <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | A list of public subnets inside the VPC | `list(string)` | `[]` | no |
+| <a name="input_public_subnets_tags"></a> [public\_subnets\_tags](#input\_public\_subnets\_tags) | Additional tags for the public subnets | `map(string)` | `{}` | no |
+| <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | Name of the private route53 hosted zone | `string` | `"non-prod.internal"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | A map of tags to add to all resources | `map(string)` | `{}` | no |
+| <a name="input_vpc_tags"></a> [vpc\_tags](#input\_vpc\_tags) | Additional tags for the VPC | `map(string)` | `{}` | no |
 
-Output
-------
+## Outputs
+
 | Name | Description |
 |------|-------------|
-| vpc_id | The ID of the VPC |
-| arn | The arn of the VPC |
-| default_network_acl_id | The default_network_acl_id of the VPC |
-| default_route_table_id | The default_route_table_id of the VPC |
-| default_security_group_id | The default_security_group_id of the VPC |
-| dhcp_options_id | The dhcp_options_id of the VPC |
-| main_route_table_id | The main_route_table_id of the VPC |
-| owner_id | The owner_id of the VPC |
-| igw_id | The id of the IGW attached to VPC |
-| public_sub_id | The id of public subnets |
-| public_subnet_arn | The arn of public subnets |
-| elastic_ip_id | The elastic_ip_id of the VPC |
-| ngw_id | The id of the NGW attached to VPC |
-| network_acl_id | The network_acl_id of the VPC |
-| alb_id | The id of the Application load balancer attached to VPC |
-| web_security_group_id| The web_security_group_id of the VPC |
-| ssh_security_group_id | The ssh_security_group_id to whitelist ip in the VPC |
-
-## Related Projects
-
-Check out these related projects.
-
-- [HA_ec2_ALB](https://gitlab.com/ot-aws/terrafrom_v0.12.21/network_skeleton) -  Terraform module for createing a Highly available setup of an EC2 instance with quick disater recovery.
-- [security_group](https://gitlab.com/ot-aws/terrafrom_v0.12.21/security_group) - Terraform module for creating dynamic Security groups
-- [eks](https://gitlab.com/ot-aws/terrafrom_v0.12.21/eks) - Terraform module for creating elastic kubernetes cluster.
-- [rds](https://gitlab.com/ot-aws/terrafrom_v0.12.21/rds) - Terraform module for creating Relation Datbase service.
-- [HA_ec2](https://gitlab.com/ot-aws/terrafrom_v0.12.21/ha_ec2.git) - Terraform module for creating a Highly available setup of an EC2 instance with quick disater recovery.
-- [rolling_deployment](https://gitlab.com/ot-aws/terrafrom_v0.12.21/rolling_deployment.git) - This terraform module will orchestrate rolling deployment.
-
-### Contributors
-
-|  [![Sudipt Sharma][sudipt_avatar]][sudipt_homepage]<br/>[Sudipt Sharma][sudipt_homepage] | [![Abhishek Vishwakarma][abhishek_avatar]][abhishek_homepage]<br/>[Abhishek Vishwakarma][abhishek_homepage] |
-|---|---|
-
-  [sudipt_homepage]: https://github.com/iamsudipt
-  [sudipt_avatar]: https://img.cloudposse.com/75x75/https://github.com/iamsudipt.png
-  [abhishek_homepage]: https://github.com/oo4abhishek.png
-  [abhishek_avatar]: https://img.cloudposse.com/75x75/https://github.com/oo4abhishek.png
+| <a name="output_additional_private_routes"></a> [additional\_private\_routes](#output\_additional\_private\_routes) | List of additional private routes |
+| <a name="output_database_subnets"></a> [database\_subnets](#output\_database\_subnets) | List of IDs of database subnets |
+| <a name="output_database_subnets_cidr_blocks"></a> [database\_subnets\_cidr\_blocks](#output\_database\_subnets\_cidr\_blocks) | List of cidr\_blocks of database subnets |
+| <a name="output_default_network_acl_id"></a> [default\_network\_acl\_id](#output\_default\_network\_acl\_id) | The ID of the default network ACL |
+| <a name="output_default_route_table_id"></a> [default\_route\_table\_id](#output\_default\_route\_table\_id) | The ID of the default route table |
+| <a name="output_default_security_group_id"></a> [default\_security\_group\_id](#output\_default\_security\_group\_id) | The ID of the security group created by default on VPC creation |
+| <a name="output_igw_id"></a> [igw\_id](#output\_igw\_id) | The ID of the Internet Gateway |
+| <a name="output_nat_gateway_id"></a> [nat\_gateway\_id](#output\_nat\_gateway\_id) | List of IDs of nat gateway |
+| <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips) | List of nat gateway IPs |
+| <a name="output_private_route_table_id"></a> [private\_route\_table\_id](#output\_private\_route\_table\_id) | The ID of the private route table |
+| <a name="output_private_subnets"></a> [private\_subnets](#output\_private\_subnets) | List of IDs of private subnets |
+| <a name="output_private_subnets_cidr_blocks"></a> [private\_subnets\_cidr\_blocks](#output\_private\_subnets\_cidr\_blocks) | List of cidr\_blocks of private subnets |
+| <a name="output_public_route_table_id"></a> [public\_route\_table\_id](#output\_public\_route\_table\_id) | The ID of the public route table |
+| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | List of IDs of public subnets |
+| <a name="output_public_subnets_cidr_blocks"></a> [public\_subnets\_cidr\_blocks](#output\_public\_subnets\_cidr\_blocks) | List of cidr\_blocks of public subnets |
+| <a name="output_route53_zone_id"></a> [route53\_zone\_id](#output\_route53\_zone\_id) | Zone id for the vpc route53 |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
