@@ -1,42 +1,30 @@
-variable "name" {
-  description = "Name tag of the VPC"
-  type        = string
-  default     = "opstree"
-}
-
 variable "cidr_block" {
-  description = "The CIDR block for the VPC."
+  description = "The IPv4 CIDR block for the VPC."
   type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "instance_tenancy" {
-  description = "If this attribute is true, the provider ensures all EC2 instances that are launched in a VPC run on hardware that's dedicated to a single customer."
+  description = "A tenancy option for instances launched into the VPC"
   type        = string
   default     = "default"
 }
 
-variable "enable_dns_support" {
-  description = "If this attribute is false, the Amazon-provided DNS server that resolves public DNS hostnames to IP addresses is not enabled."
-  type        = string
-  default     = "true"
+variable "enable_network_address_usage_metrics" {
+  description = "Determines whether network address usage metrics are enabled for the VPC"
+  type        = bool
+  default     = false
 }
 
-variable "enable_dns_hostnames" {
-  description = "If this attribute is true, instances in the VPC get public DNS hostnames, but only if the enableDnsSupport attribute is also set to true."
+variable "name" {
+  description = "Name to be used on all the resources as identifier"
   type        = string
-  default     = "false"
 }
 
-variable "enable_classiclink" {
-  description = "If this attribute is true, ClassicLink allows you to link EC2-Classic instances to a VPC in your account, within the same region."
+variable "route53_zone" {
+  description = "Name of the private route53 hosted zone"
   type        = string
-  default     = "false"
-}
-
-variable "enable_classiclink_dns_support" {
-  description = "If this attribute is true, the DNS hostname of a linked EC2-Classic instance resolves to its private IP address when addressed from an instance in the VPC to which it's linked."
-  type        = string
-  default     = "false"
+  default     = "non-prod.internal"
 }
 
 variable "tags" {
@@ -51,127 +39,61 @@ variable "vpc_tags" {
   default     = {}
 }
 
-variable "public_sub_az" {
-  description = "AZ for public subnet"
+variable "additional_public_routes" {
+  type = map(object({
+    destination_cidr_block = string
+    gateway_id             = string
+  }))
+  default = {}
+}
+
+variable "public_subnets" {
+  description = "A list of public subnets inside the VPC"
   type        = list(string)
-  default     = ["10.0.0.0/19","10.0.32.0/19","10.64.0.0/19"]
+  default     = []
 }
 
-variable "public_sub_az_id" {
-  description = "ID of AZ for public subnet"
+variable "azs" {
+  description = "A list of availability zones names or ids in the region"
   type        = list(string)
-  default     = ["ap-south-1a","ap-south-1b","ap-south-1c"]
+  default     = []
 }
 
-variable "public_subnet_cidr" {
-  description = "CIDR of public subnet"
+variable "public_subnets_tags" {
+  description = "Additional tags for the public subnets"
+  type        = map(string)
+  default     = {}
+}
+
+variable "private_subnets" {
+  description = "A list of private subnets inside the VPC"
   type        = list(string)
-  default     = ["ap-south-1a","ap-south-1b","ap-south-1c"]
+  default     = []
 }
 
-variable "map_public_ip_on_launch" {
-  description = "Specify true to indicate that instances launched into the subnet should be assigned a public IP address"
-  type        = string
-  default     = false
+variable "private_subnets_tags" {
+  description = "Additional tags for the private subnets"
+  type        = map(string)
+  default     = {}
 }
 
-variable "nacl_egress_rule_no" {
-  description = "Starting rule number for the entry in NACL egress rule"
-  default     = 200
+variable "database_subnets" {
+  description = "A list of database subnets inside the VPC"
+  type        = list(string)
+  default     = []
 }
 
-variable "nacl_egress_protocol" {
-  description = "Protocol on which NACL egress rule applied. If using the -1 'all' protocol,"
-  default     = "tcp"
+variable "database_subnets_tags" {
+  description = "Additional tags for the database subnets"
+  type        = map(string)
+  default     = {}
 }
 
-variable "nacl_egress_action" {
-  description = "Action to allow or deny the traffic that matches the rule"
-  default     = "allow"
-}
-
-variable "nacl_egress_from_port" {
-  description = "The from port to match rule in NACl egress"
-  type        = list(number)
-  default     = [80,443]
-}
-
-variable "nacl_egress_to_port" {
-  description = "The to port to match rule in NACl egress"
-  type        = list(number)
-  default     = [80,443]
-}
-
-variable "nacl_ingress_rule_no" {
-  description = "Starting rule number for the entry in NACL ingress rule"
-  default     = 100
-}
-
-variable "nacl_ingress_protocol" {
-  description = "Protocol on which NACL ingress rule applied. If using the -1 'all' protocol,"
-  default = "tcp"
-}
-
-variable "nacl_ingress_action" {
-  description = "Action to allow or deny the traffic that matches the rule"
-  default     = "allow"
-}
-
-variable "nacl_ingress_from_port" {
-  description = "The from port to match rule in NACl ingress"
-  type        = list(number)
-  default     = [80,443]
-}
-
-variable "nacl_ingress_to_port" {
-  description = "The to port to match rule in NACl ingress"
-  type        = list(number)
-  default     = [80,443]
-}
-
-variable "sg_egress_from_port" {
-  description = "The from port to match egress rule in security group"
-  type = list(number)
-  default = [80,443]
-}
-
-variable "sg_egress_to_port" {
-   description = "The to port to match egress rule in security group"
-  type = list(number)
-  default = [80,443]
-}
-
-variable "sg_ingress_from_port" {
-   description = "The from port to match ingress rule in security group"
-  type = list(number)
-  default = [80,443]
-}
-
-variable "sg_ingress_to_port" {
-  description = "The to port to match ingress rule in security group"
-  type = list(number)
-  default = [80,443]
-}
-
-variable "whitelist_ssh_ip" {
-  description = "The ip address allowed to do ssh"
-  type = list(string)
-  default = ["171.76.32.5/32","191.23.54.23/32"]
-}
-
-variable "certificate_arn" {
-  description = "The ARN of the default SSL server certificate"
-  default     = ""
-}
-
-variable "require_hosted_zone" {
-  description = "Enable true to create hosted zone"
-}
-
-variable "name_hz" {
-  description = "Hostzone domain name"
-}
-
-variable "record_type" {
-  description = "The record type"
+variable "additional_private_routes" {
+  description = "List of private subnets with map"
+  type = list(object({
+    destination_cidr_block = string
+    gateway_id             = string
+  }))
+  default = []
 }
