@@ -87,3 +87,13 @@ output "additional_private_routes" {
   description = "List of additional private routes"
   value       = local.additional_routes
 }
+
+output "flow_logs_bucket_arn" {
+  description = "The ARN of the Flow Log bucket"
+  value       = aws_s3_bucket.flow_logs_bucket[*].arn
+}
+
+output "vpc_flow_log_arn" {
+  description = "The ARN of the Flow Log"
+  value       = aws_flow_log.vpc_flow_log[*].arn
+}

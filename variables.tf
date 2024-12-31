@@ -40,6 +40,7 @@ variable "vpc_tags" {
 }
 
 variable "additional_public_routes" {
+  description = "List of public subnets routes with map"
   type = map(object({
     destination_cidr_block = string
     gateway_id             = string
@@ -90,10 +91,28 @@ variable "database_subnets_tags" {
 }
 
 variable "additional_private_routes" {
-  description = "List of private subnets with map"
+  description = "List of private subnets routes with map"
   type = list(object({
     destination_cidr_block = string
     gateway_id             = string
   }))
   default = []
+}
+
+variable "flow_logs_enabled" {
+  description = "Whether to enable VPC flow logs or not"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_traffic_type" {
+  description = "The type of traffic to capture. Valid values: ACCEPT,REJECT, ALL"
+  type        = string
+  default     = "ALL"
+}
+
+variable "flow_logs_file_format" {
+  description = "The format for the flow log. Valid values: plain-text, parquet"
+  type        = string
+  default     = "parquet"
 }

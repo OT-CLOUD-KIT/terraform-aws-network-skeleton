@@ -189,3 +189,23 @@ resource "aws_route" "additional_private_route" {
   gateway_id             = local.additional_routes[element(aws_route_table.private_route_table[*].id, count.index)][0].gateway_id
   destination_cidr_block = local.additional_routes[element(aws_route_table.private_route_table[*].id, count.index)][0].destination_cidr_block
 }
+
+# VPC Flow logs bucket creation
+data "aws_caller_identity" "current_account" {}
+
+resource "aws_s3_bucket" "flow_logs_bucket" {
+  count  = var.flow_logs_enabled ? 1 : 0
+  bucket = format("%s-%s-flow-logs-bucket", var.name, data.aws_caller_identity.current_account.account_id)
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  count                = var.flow_logs_enabled ? 1 : 0
+  log_destination      = aws_s3_bucket.flow_logs_bucket[0].arn
+  log_destination_type = "s3"
+  traffic_type         = var.flow_logs_traffic_type
+  vpc_id               = aws_vpc.vpc.id
+  destination_options {
+    file_format        = var.flow_logs_file_format
+    per_hour_partition = true
+  }
+}
