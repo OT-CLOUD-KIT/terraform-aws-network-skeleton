@@ -98,3 +98,21 @@ variable "additional_private_routes" {
   }))
   default = []
 }
+
+variable "flow_logs_enabled" {
+  description = "Whether to enable VPC flow logs or not"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_traffic_type" {
+  description = "The type of traffic to capture. Valid values: ACCEPT,REJECT, ALL"
+  type        = string
+  default     = "ALL"
+}
+
+variable "flow_logs_file_format" {
+  description = "The format for the flow log. Valid values: plain-text, parquet"
+  type        = string
+  default     = "parquet"
+}

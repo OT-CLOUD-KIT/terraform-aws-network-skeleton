@@ -25,3 +25,4 @@ additional_private_routes = [
     gateway_id             = "nat-00a12c2c206403cfa"
   }
 ]
+flow_logs_enabled = true
