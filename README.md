@@ -140,27 +140,36 @@ module "network" {
 | <a name="input_tags"></a> [tags](#input\_tags)                                                                                                         | A map of tags to add to all resources                                    | `map(string)`                                                                                                      | `{}`                  |    no    |
 | <a name="input_vpc_tags"></a> [vpc\_tags](#input\_vpc\_tags)                                                                                           | Additional tags for the VPC                                              | `map(string)`                                                                                                      | `{}`                  |    no    |
 
-## Outputs
-
 | Name                                                                                                                           | Description                                                     |
 |--------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| <a name="output_additional_private_routes"></a> [additional\_private\_routes](#output\_additional\_private\_routes)            | List of additional private routes                               |
-| <a name="output_database_subnets"></a> [database\_subnets](#output\_database\_subnets)                                         | List of IDs of database subnets                                 |
-| <a name="output_database_subnets_cidr_blocks"></a> [database\_subnets\_cidr\_blocks](#output\_database\_subnets\_cidr\_blocks) | List of cidr\_blocks of database subnets                        |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id)                                                                       | The ID of the VPC                                               |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block)                                             | The CIDR block of the VPC                                       |
+| <a name="output_default_security_group_id"></a> [default\_security\_group\_id](#output\_default\_security\_group\_id)          | The ID of the default security group for the VPC                |
 | <a name="output_default_network_acl_id"></a> [default\_network\_acl\_id](#output\_default\_network\_acl\_id)                   | The ID of the default network ACL                               |
 | <a name="output_default_route_table_id"></a> [default\_route\_table\_id](#output\_default\_route\_table\_id)                   | The ID of the default route table                               |
-| <a name="output_default_security_group_id"></a> [default\_security\_group\_id](#output\_default\_security\_group\_id)          | The ID of the security group created by default on VPC creation |
-| <a name="output_flow_logs_bucket_arn"></a> [flow\_logs\_bucket\_arn](#output\_flow\_logs\_bucket\_arn)                         | The ARN of the Flow Log bucket                                  |
 | <a name="output_igw_id"></a> [igw\_id](#output\_igw\_id)                                                                       | The ID of the Internet Gateway                                  |
-| <a name="output_nat_gateway_id"></a> [nat\_gateway\_id](#output\_nat\_gateway\_id)                                             | List of IDs of nat gateway                                      |
-| <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips)                                          | List of nat gateway IPs                                         |
-| <a name="output_private_route_table_id"></a> [private\_route\_table\_id](#output\_private\_route\_table\_id)                   | The ID of the private route table                               |
-| <a name="output_private_subnets"></a> [private\_subnets](#output\_private\_subnets)                                            | List of IDs of private subnets                                  |
-| <a name="output_private_subnets_cidr_blocks"></a> [private\_subnets\_cidr\_blocks](#output\_private\_subnets\_cidr\_blocks)    | List of cidr\_blocks of private subnets                         |
 | <a name="output_public_route_table_id"></a> [public\_route\_table\_id](#output\_public\_route\_table\_id)                      | The ID of the public route table                                |
-| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets)                                               | List of IDs of public subnets                                   |
-| <a name="output_public_subnets_cidr_blocks"></a> [public\_subnets\_cidr\_blocks](#output\_public\_subnets\_cidr\_blocks)       | List of cidr\_blocks of public subnets                          |
-| <a name="output_route53_zone_id"></a> [route53\_zone\_id](#output\_route53\_zone\_id)                                          | Zone id for the vpc route53                                     |
-| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block)                                             | The CIDR block of the VPC                                       |
-| <a name="output_vpc_flow_log_arn"></a> [vpc\_flow\_log\_arn](#output\_vpc\_flow\_log\_arn)                                     | The ARN of the Flow Log                                         |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id)                                                                       | The ID of the VPC                                               |
+| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets)                                               | List of public subnet IDs                                       |
+| <a name="output_public_subnets_cidr_blocks"></a> [public\_subnets\_cidr\_blocks](#output\_public\_subnets\_cidr\_blocks)       | CIDR blocks of public subnets                                   |
+| <a name="output_route53_zone_id"></a> [route53\_zone\_id](#output\_route53\_zone\_id)                                          | Private Route53 zone ID                                         |
+| <a name="output_private_subnets"></a> [private\_subnets](#output\_private\_subnets)                                            | List of private subnet IDs                                      |
+| <a name="output_private_subnets_cidr_blocks"></a> [private\_subnets\_cidr\_blocks](#output\_private\_subnets\_cidr\_blocks)    | CIDR blocks of private subnets                                  |
+| <a name="output_private_route_table_id"></a> [private\_route\_table\_id](#output\_private\_route\_table\_id)                   | List of private route table IDs                                 |
+| <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips)                                          | List of NAT Gateway IP addresses                                |
+| <a name="output_nat_gateway_id"></a> [nat\_gateway\_id](#output\_nat\_gateway\_id)                                             | List of NAT Gateway IDs                                         |
+| <a name="output_database_subnets"></a> [database\_subnets](#output\_database\_subnets)                                         | List of database subnet IDs                                     |
+| <a name="output_database_subnets_cidr_blocks"></a> [database\_subnets\_cidr\_blocks](#output\_database\_subnets\_cidr\_blocks) | CIDR blocks of database subnets                                 |
+| <a name="output_flow_logs_bucket_arn"></a> [flow\_logs\_bucket\_arn](#output\_flow\_logs\_bucket\_arn)                         | ARN of the S3 bucket for flow logs                              |
+| <a name="output_vpc_flow_log_arn"></a> [vpc\_flow\_log\_arn](#output\_vpc\_flow\_log\_arn)                                     | ARN of the VPC flow log resource                                |
+| <a name="output_public_nacl_id"></a> [public\_nacl\_id](#output\_public\_nacl\_id)                                             | ID of the public NACL                                           |
+| <a name="output_private_nacl_id"></a> [private\_nacl\_id](#output\_private\_nacl\_id)                                          | ID of the private NACL                                          |
+| <a name="output_s3_endpoint_id"></a> [s3\_endpoint\_id](#output\_s3\_endpoint\_id)                                             | The ID of the S3 VPC endpoint                                   |
+| <a name="output_s3_endpoint_dns_entries"></a> [s3\_endpoint\_dns\_entries](#output\_s3\_endpoint\_dns\_entries)               | DNS entries for the S3 VPC endpoint                             |
+| <a name="output_ec2_endpoint_id"></a> [ec2\_endpoint\_id](#output\_ec2\_endpoint\_id)                                          | The ID of the EC2 VPC endpoint                                  |
+| <a name="output_ec2_endpoint_dns_entries"></a> [ec2\_endpoint\_dns\_entries](#output\_ec2\_endpoint\_dns\_entries)            | DNS entries for the EC2 VPC endpoint                            |
+| <a name="output_nlb_endpoint_id"></a> [nlb\_endpoint\_id](#output\_nlb\_endpoint\_id)                                          | The ID of the NLB VPC endpoint                                  |
+| <a name="output_nlb_endpoint_dns_entries"></a> [nlb\_endpoint\_dns\_entries](#output\_nlb\_endpoint\_dns\_entries)            | DNS entries for the NLB VPC endpoint                            |
+| <a name="output_endpoint_security_group_id"></a> [endpoint\_security\_group\_id](#output\_endpoint\_security\_group\_id)      | The ID of the endpoint security group                           |
+| <a name="output_all_vpc_endpoint_ids"></a> [all\_vpc\_endpoint\_ids](#output\_all\_vpc\_endpoint\_ids)                        | Map of all created VPC endpoint IDs                             |
+| <a name="output_endpoint_sg_ingress_rules"></a> [endpoint\_sg\_ingress\_rules](#output\_endpoint\_sg\_ingress\_rules)         | List of ingress rules for the endpoint security group           |
+| <a name="output_endpoint_sg_egress_rules"></a> [endpoint\_sg\_egress\_rules](#output\_endpoint\_sg\_egress\_rules)            | List of egress rules for the endpoint security group            |
