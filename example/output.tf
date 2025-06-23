@@ -101,7 +101,7 @@ output "private_nacl_id" {
   value = module.network.private_nacl_id
 }
 
-# VPC Endpoint Outputs
+# # VPC Endpoint Outputs
 
 output "s3_endpoint_id" {
   description = "The ID of the S3 VPC endpoint"
@@ -115,34 +115,34 @@ output "s3_endpoint_dns_entries" {
 
 output "ec2_endpoint_id" {
   description = "The ID of the EC2 VPC endpoint"
-  value       = var.enable_ec2_endpoint ? module.network.aws_vpc_endpoint.ec2[0].id : null
+  value       = var.enable_ec2_endpoint ? module.network.ec2_endpoint.id : null
 }
 
 output "ec2_endpoint_dns_entries" {
   description = "DNS entries for the EC2 VPC endpoint"
-  value       = var.enable_ec2_endpoint ? module.network.aws_vpc_endpoint.ec2[0].dns_entry : null
+  value       = var.enable_ec2_endpoint ? module.network.ec2_endpoint.dns_entries : null
 }
 
 output "nlb_endpoint_id" {
   description = "The ID of the NLB VPC endpoint"
-  value       = var.enable_nlb_endpoint ? module.network.aws_vpc_endpoint.nlb[0].id : null
+  value       = var.enable_nlb_endpoint ? module.network.nlb_endpoint.id : null
 }
 
 output "nlb_endpoint_dns_entries" {
   description = "DNS entries for the NLB VPC endpoint"
-  value       = var.enable_nlb_endpoint ? module.network.aws_vpc_endpoint.nlb[0].dns_entry : null
+  value       = var.enable_nlb_endpoint ? module.network.nlb_endpoint.dns_entries : null
 }
 
 output "endpoint_security_group_id" {
   description = "The ID of the endpoint security group"
-  value       = var.enable_endpoint_sg ? module.network.aws_security_group.endpoint_sg[0].id : null
+  value       = var.enable_endpoint_sg ? module.network.endpoint_security_group.id : null
 }
 
 # Additional useful outputs
 output "all_vpc_endpoint_ids" {
   description = "Map of all created VPC endpoint IDs"
   value = {
-    s3  = var.enable_s3_endpoint  ? module.network.s3_endpoint.id  : null
+    s3  = var.enable_s3_endpoint ? module.network.s3_endpoint.id : null
     ec2 = var.enable_ec2_endpoint ? module.network.ec2_endpoint.id : null
     nlb = var.enable_nlb_endpoint ? module.network.nlb_endpoint.id : null
   }
@@ -150,10 +150,10 @@ output "all_vpc_endpoint_ids" {
 
 output "endpoint_sg_ingress_rules" {
   description = "List of ingress rules for the endpoint security group"
-  value       = var.enable_endpoint_sg ? module.network.aws_security_group.endpoint_sg[0].ingress : null
+  value       = var.enable_endpoint_sg ? module.network.endpoint_security_group_rules.ingress : null
 }
 
 output "endpoint_sg_egress_rules" {
   description = "List of egress rules for the endpoint security group"
-  value       = var.enable_endpoint_sg ? module.network.aws_security_group.endpoint_sg[0].egress : null
+  value       = var.enable_endpoint_sg ? module.network.endpoint_security_group_rules.egress : null
 }
