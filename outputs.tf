@@ -24,14 +24,16 @@ output "default_route_table_id" {
 }
 
 output "igw_id" {
+  value       = length(aws_internet_gateway.igw) > 0 ? aws_internet_gateway.igw[0].id : null
   description = "The ID of the Internet Gateway"
-  value       = aws_internet_gateway.igw.id
 }
 
+
 output "public_route_table_id" {
+  value       = length(aws_route_table.public_route_table) > 0 ? aws_route_table.public_route_table[0].id : null
   description = "The ID of the public route table"
-  value       = aws_route_table.public_route_table.id
 }
+
 
 output "public_subnets" {
   description = "List of IDs of public subnets"
@@ -39,13 +41,13 @@ output "public_subnets" {
 }
 
 output "public_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of public subnets"
+  description = "List of CIDR blocks of public subnets"
   value       = compact(aws_subnet.public_subnet[*].cidr_block)
 }
 
 output "route53_zone_id" {
-  description = "Zone id for the vpc route53"
-  value       = aws_route53_zone.vpc_route53.zone_id
+  description = "Zone ID for the VPC Route53"
+  value       = aws_route53_zone.vpc_route53[*].zone_id
 }
 
 output "private_subnets" {
@@ -54,7 +56,7 @@ output "private_subnets" {
 }
 
 output "private_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of private subnets"
+  description = "List of CIDR blocks of private subnets"
   value       = compact(aws_subnet.private_subnet[*].cidr_block)
 }
 
@@ -64,12 +66,12 @@ output "private_route_table_id" {
 }
 
 output "nat_gateway_ips" {
-  description = "List of nat gateway IPs"
+  description = "List of NAT Gateway IPs"
   value       = aws_eip.nat[*].public_ip
 }
 
 output "nat_gateway_id" {
-  description = "List of IDs of nat gateway"
+  description = "List of IDs of NAT Gateways"
   value       = aws_nat_gateway.nat_gateway[*].id
 }
 
@@ -79,13 +81,8 @@ output "database_subnets" {
 }
 
 output "database_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of database subnets"
+  description = "List of CIDR blocks of database subnets"
   value       = compact(aws_subnet.database_subnet[*].cidr_block)
-}
-
-output "additional_private_routes" {
-  description = "List of additional private routes"
-  value       = local.additional_routes
 }
 
 output "flow_logs_bucket_arn" {
@@ -96,4 +93,59 @@ output "flow_logs_bucket_arn" {
 output "vpc_flow_log_arn" {
   description = "The ARN of the Flow Log"
   value       = aws_flow_log.vpc_flow_log[*].arn
+}
+
+output "public_nacl_id" {
+  description = "The ID of the public Network ACL"
+  value       = length(aws_network_acl.public) > 0 ? aws_network_acl.public[0].id : null
+}
+
+output "private_nacl_id" {
+  description = "The ID of the private Network ACL"
+  value       = length(aws_network_acl.private) > 0 ? aws_network_acl.private[0].id : null
+}
+
+# Outputs for VPC Endpoints
+output "s3_endpoint" {
+  description = "Details of the S3 VPC endpoint"
+  value = var.enable_s3_endpoint ? {
+    id              = aws_vpc_endpoint.s3[0].id
+    service_name    = aws_vpc_endpoint.s3[0].service_name
+    dns_entries     = aws_vpc_endpoint.s3[0].dns_entry
+    route_table_ids = aws_vpc_endpoint.s3[0].route_table_ids
+  } : null
+}
+
+output "ec2_endpoint" {
+  description = "Details of the EC2 VPC endpoint"
+  value = var.enable_ec2_endpoint ? {
+    id              = aws_vpc_endpoint.ec2[0].id
+    service_name    = aws_vpc_endpoint.ec2[0].service_name
+    dns_entries     = aws_vpc_endpoint.ec2[0].dns_entry
+    subnet_ids      = aws_vpc_endpoint.ec2[0].subnet_ids
+    security_groups = aws_vpc_endpoint.ec2[0].security_group_ids
+    private_dns     = aws_vpc_endpoint.ec2[0].private_dns_enabled
+  } : null
+}
+
+output "nlb_endpoint" {
+  description = "Details of the NLB VPC endpoint"
+  value = var.enable_nlb_endpoint ? {
+    id              = aws_vpc_endpoint.nlb[0].id
+    service_name    = aws_vpc_endpoint.nlb[0].service_name
+    dns_entries     = aws_vpc_endpoint.nlb[0].dns_entry
+    subnet_ids      = aws_vpc_endpoint.nlb[0].subnet_ids
+    security_groups = aws_vpc_endpoint.nlb[0].security_group_ids
+    private_dns     = aws_vpc_endpoint.nlb[0].private_dns_enabled
+  } : null
+}
+
+output "endpoint_security_group" {
+  description = "Details of the endpoint security group"
+  value = var.enable_endpoint_sg ? {
+    id          = aws_security_group.endpoint_sg[0].id
+    name        = aws_security_group.endpoint_sg[0].name
+    description = aws_security_group.endpoint_sg[0].description
+    vpc_id      = aws_security_group.endpoint_sg[0].vpc_id
+  } : null
 }

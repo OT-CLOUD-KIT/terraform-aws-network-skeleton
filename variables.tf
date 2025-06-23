@@ -1,3 +1,4 @@
+# VPC-related variables
 variable "cidr_block" {
   description = "The IPv4 CIDR block for the VPC."
   type        = string
@@ -39,6 +40,57 @@ variable "vpc_tags" {
   default     = {}
 }
 
+# Flags for resource creation
+variable "create_igw" {
+  description = "Whether to create an Internet Gateway"
+  type        = bool
+
+}
+
+variable "create_nat_gateway" {
+  description = "Whether to create NAT Gateways"
+  type        = bool
+
+}
+
+variable "create_database_subnets" {
+  description = "Whether to create database subnets"
+  type        = bool
+
+}
+
+variable "create_public_subnets" {
+  description = "Whether to create public subnets"
+  type        = bool
+
+}
+
+variable "create_private_subnets" {
+  description = "Whether to create private subnets"
+  type        = bool
+}
+
+variable "create_public_route_table" {
+  description = "Whether to create public route table"
+  type        = bool
+}
+
+variable "create_private_route_table" {
+  description = "Whether to create private route table"
+  type        = bool
+}
+
+variable "create_nacl" {
+  description = "Whether to create Network ACLs"
+  type        = bool
+
+}
+
+variable "create_route53" {
+  description = "Whether to create private Route53 zone"
+  type        = bool
+}
+
 variable "additional_public_routes" {
   description = "List of public subnets routes with map"
   type = map(object({
@@ -48,14 +100,19 @@ variable "additional_public_routes" {
   default = {}
 }
 
-variable "public_subnets" {
-  description = "A list of public subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
+# Availability Zones (AZs) for resource distribution
 variable "azs" {
   description = "A list of availability zones names or ids in the region"
+  type        = list(string)
+  validation {
+    condition     = length(var.azs) > 0
+    error_message = "You must provide at least one AZ."
+  }
+}
+
+# Subnet CIDR blocks and tags
+variable "public_subnets" {
+  description = "A list of public subnets inside the VPC"
   type        = list(string)
   default     = []
 }
@@ -99,6 +156,7 @@ variable "additional_private_routes" {
   default = []
 }
 
+# Flow logs for the VPC
 variable "flow_logs_enabled" {
   description = "Whether to enable VPC flow logs or not"
   type        = bool
@@ -106,7 +164,7 @@ variable "flow_logs_enabled" {
 }
 
 variable "flow_logs_traffic_type" {
-  description = "The type of traffic to capture. Valid values: ACCEPT,REJECT, ALL"
+  description = "The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL"
   type        = string
   default     = "ALL"
 }
@@ -115,4 +173,131 @@ variable "flow_logs_file_format" {
   description = "The format for the flow log. Valid values: plain-text, parquet"
   type        = string
   default     = "parquet"
+}
+
+############### NACL-related variables #############
+variable "create_public_nacl" {
+  description = "Flag to create public NACL"
+  type        = bool
+
+}
+
+variable "create_private_nacl" {
+  description = "Flag to create private NACL"
+  type        = bool
+
+}
+
+variable "public_nacl_rules" {
+  description = "List of NACL rules for public subnets"
+  type = list(object({
+    rule_number = number
+    egress      = bool
+    protocol    = string
+    rule_action = string
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+  }))
+  default = []
+}
+
+variable "private_nacl_rules" {
+  description = "List of NACL rules for private subnets"
+  type = list(object({
+    rule_number = number
+    egress      = bool
+    protocol    = string
+    rule_action = string
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+  }))
+  default = []
+}
+
+
+###########################################################
+# vpc endpoint
+###########################################################
+
+variable "enable_s3_endpoint" {
+  type    = bool
+  default = true
+}
+
+variable "enable_ec2_endpoint" {
+  type    = bool
+  default = true
+}
+
+variable "enable_nlb_endpoint" {
+  type    = bool
+  default = true
+}
+
+variable "enable_endpoint_sg" {
+  description = "Whether to create the endpoint security group"
+  type        = bool
+  default     = true
+}
+
+variable "endpoint_sg_rules" {
+  description = "List of security group rules for VPC endpoints"
+  type = list(object({
+    description = string
+    type        = string # "ingress" or "egress"
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
+}
+
+variable "service_name_s3" {
+  description = ""
+  type        = string
+  default     = ""
+
+}
+
+variable "s3_endpoint_type" {
+  description = ""
+  type        = string
+  default     = ""
+}
+variable "service_name_ec2" {
+  description = ""
+  type        = string
+  default     = ""
+
+}
+
+variable "ec2_endpoint_type" {
+  description = ""
+  type        = string
+  default     = ""
+}
+
+variable "ec2_private_dns_enabled" {
+  description = ""
+  type        = bool
+}
+
+variable "service_name_nlb" {
+  description = ""
+  type        = string
+  default     = ""
+
+}
+
+variable "nlb_endpoint_type" {
+  description = ""
+  type        = string
+}
+
+variable "nlb_private_dns_enabled" {
+  description = ""
+  type        = bool
 }
