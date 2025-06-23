@@ -1,7 +1,7 @@
 module "network" {
-  source = "../"
+  source = "./module"
 
-  name                                 = var.name
+  region                               = var.region
   cidr_block                           = var.cidr_block
   instance_tenancy                     = var.instance_tenancy
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
@@ -12,11 +12,6 @@ module "network" {
   flow_logs_enabled                    = var.flow_logs_enabled
   additional_public_routes             = var.additional_public_routes
   additional_private_routes            = var.additional_private_routes
-  tags                                 = var.tags
-  vpc_tags                             = var.vpc_tags
-  public_subnets_tags                  = var.public_subnets_tags
-  private_subnets_tags                 = var.private_subnets_tags
-  database_subnets_tags                = var.database_subnets_tags
   create_database_subnets              = var.create_database_subnets
   create_igw                           = var.create_igw
   create_nat_gateway                   = var.create_nat_gateway
@@ -29,6 +24,11 @@ module "network" {
   create_route53                       = var.create_route53
   create_nacl                          = var.create_nacl
   database_subnets                     = var.database_subnets
+  bu                                   = var.bu
+  program                              = var.program
+  team                                 = var.team
+  app                                  = var.app
+  env                                  = var.env
   enable_s3_endpoint                   = var.enable_s3_endpoint
   enable_ec2_endpoint                  = var.enable_ec2_endpoint
   enable_nlb_endpoint                  = var.enable_nlb_endpoint
@@ -42,6 +42,51 @@ module "network" {
   service_name_nlb                     = var.service_name_nlb
   nlb_endpoint_type                    = var.nlb_endpoint_type
   nlb_private_dns_enabled              = var.nlb_private_dns_enabled
+}
 
 
+# module "vpc_endpoints" {
+#   for_each = var.vpc_endpoints
+
+#   source              = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-vpc-endpoints.git?ref=Feature"
+
+#   vpc_id              = var.vpc_id
+#   service_name        = each.value.service_name
+#   vpc_endpoint_type   = each.value.vpc_endpoint_type
+#   subnet_ids          = each.value.subnet_ids
+#   security_group_ids  = each.value.security_group_ids
+#   route_table_ids     = each.value.route_table_ids
+#   auto_accept         = each.value.auto_accept
+#   private_dns_enabled = each.value.private_dns_enabled
+#   name                = each.value.name
+#   tags                = var.common_tags
+
+# }
+
+# module "sg_example" {
+#   source                       = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v.0.0.4"
+#   vpc_id                       = module.network.vpc_id
+#   tags                         = module.standard_tags.standard_tags
+#   name                         = module.naming.naming_tag[0]
+#   aws_security_group_variables = var.aws_security_group_variables
+# }
+
+module "naming" {
+  source   = "git@github.com:OT-CLOUD-KIT/terraform-aws-naming.git?ref=dev"
+  bu       = var.bu
+  env      = var.env
+  app      = var.app
+  tenant   = var.tenant
+  resource = var.resource
+}
+
+module "standard_tags" {
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-standard-tagging.git?ref=dev"
+
+  bu      = var.bu
+  program = var.program
+  app     = var.app
+  team    = var.team
+  region  = var.region
+  env     = var.env
 }

@@ -24,18 +24,18 @@ output "default_route_table_id" {
 }
 
 output "igw_id" {
-  value       = length(aws_internet_gateway.igw) > 0 ? aws_internet_gateway.igw[0].id : null
+  value = length(aws_internet_gateway.igw) > 0 ? aws_internet_gateway.igw[0].id : null
   description = "The ID of the Internet Gateway"
 }
 
 
 output "public_route_table_id" {
-  value       = length(aws_route_table.public_route_table) > 0 ? aws_route_table.public_route_table[0].id : null
+  value = length(aws_route_table.public_route_table) > 0 ? aws_route_table.public_route_table[0].id : null
   description = "The ID of the public route table"
 }
 
 
-output "public_subnets" {
+output "public_subnets_ids" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.public_subnet[*].id
 }
@@ -47,10 +47,10 @@ output "public_subnets_cidr_blocks" {
 
 output "route53_zone_id" {
   description = "Zone ID for the VPC Route53"
-  value       = aws_route53_zone.vpc_route53[*].zone_id
+  value       = aws_route53_zone.vpc_route53[*].zone_id  
 }
 
-output "private_subnets" {
+output "private_subnets_ids" {
   description = "List of IDs of private subnets"
   value       = aws_subnet.private_subnet[*].id
 }
@@ -75,7 +75,7 @@ output "nat_gateway_id" {
   value       = aws_nat_gateway.nat_gateway[*].id
 }
 
-output "database_subnets" {
+output "database_subnets_ids" {
   description = "List of IDs of database subnets"
   value       = aws_subnet.database_subnet[*].id
 }

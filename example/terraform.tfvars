@@ -1,48 +1,50 @@
-cidr_block                           = "10.1.0.0/16"
-instance_tenancy                     = "default"
+
+region     = "us-east-1"
+cidr_block = "10.0.0.0/16"
+
+instance_tenancy = "default"
+
 enable_network_address_usage_metrics = false
-name                                 = "test-vpc"
-route53_zone                         = "non-prod.internal"
-tags = {
-  Environment = "non-prod"
-  Project     = "du-project"
-}
-vpc_tags = {
-  Name = "nonprod-vpc"
-}
+
+
+route53_zone = "non-prod.internal"
+
+
+
 azs              = ["us-east-1a", "us-east-1b"]
-public_subnets   = ["10.1.1.0/24", "10.1.2.0/24"]
-private_subnets  = ["10.1.12.0/24", "10.1.13.0/24", "10.1.14.0/24"]
-database_subnets = []
+public_subnets   = ["10.0.1.0/24"]
+private_subnets  = ["10.0.12.0/24", "10.0.13.0/24"]
+database_subnets = ["10.0.14.0/24"]
+
 # Flags for resource creation
 create_igw                 = true
-create_nat_gateway         = false
-create_database_subnets    = false
+create_nat_gateway         = true
+create_database_subnets    = true
 create_public_subnets      = true
 create_private_subnets     = true
 create_public_route_table  = true
 create_private_route_table = true
-create_nacl                = false
+create_nacl                = true
 create_route53             = false
-create_public_nacl         = false
-create_private_nacl        = false
-# Tags
-public_subnets_tags = {
-  Tier = "public"
-}
-private_subnets_tags = {
-  Tier = "application"
-}
+create_public_nacl         = true
+create_private_nacl        = true
+
+
+
+
 # Additional routes (optional)
 additional_private_routes = []
 additional_public_routes  = {}
+
 # Flow logs
 flow_logs_enabled = false
+
 ################ NACL #################
+
 public_nacl_rules = [
   {
     rule_number = 100
-    egress      = false
+    egress      = true
     protocol    = "tcp"
     rule_action = "allow"
     cidr_block  = "0.0.0.0/0"
@@ -51,27 +53,7 @@ public_nacl_rules = [
   },
   {
     rule_number = 200
-    egress      = false
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
-  }
-]
-private_nacl_rules = [
-  {
-    rule_number = 100
-    egress      = false
-    protocol    = "tcp"
-    rule_action = "allow"
-    cidr_block  = "10.0.0.0/8"
-    from_port   = 443
-    to_port     = 443
-  },
-  {
-    rule_number = 200
-    egress      = false
+    egress      = true
     protocol    = "-1"
     rule_action = "allow"
     cidr_block  = "0.0.0.0/0"
@@ -80,7 +62,31 @@ private_nacl_rules = [
   }
 ]
 
-###########################
+private_nacl_rules = [
+  {
+    rule_number = 100
+    egress      = true
+    protocol    = "tcp"
+    rule_action = "allow"
+    cidr_block  = "10.0.0.0/8"
+    from_port   = 443
+    to_port     = 443
+  },
+  {
+    rule_number = 200
+    egress      = true
+    protocol    = "-1"
+    rule_action = "allow"
+    cidr_block  = "0.0.0.0/0"
+    from_port   = 0
+    to_port     = 0
+  }
+]
+
+
+
+#################### VPC endpoint #####################
+
 
 enable_s3_endpoint  = true
 enable_ec2_endpoint = false
@@ -97,7 +103,7 @@ ec2_endpoint_type       = "Interface"
 ec2_private_dns_enabled = true
 
 # NLB Endpoint Configuration
-service_name_nlb        = "com.amazonaws.us-east-1.elasticloadbalancing"
+service_name_nlb        = "com.amazonaws.us-east-2.elasticloadbalancing"
 nlb_endpoint_type       = "Interface"
 nlb_private_dns_enabled = true
 
@@ -120,3 +126,23 @@ endpoint_sg_rules = [
     cidr_blocks = ["10.0.0.0/16"]
   }
 ]
+
+
+################## Naming Convension #####################
+
+random_alphanumeric_len = 4
+
+bu       = "pcs"
+app      = "fcicmm"
+env      = "d"
+resource = "network"
+tenant   = ""
+
+special = false
+upper   = false
+number  = true
+
+gen_no_of_names = 1
+
+team    = "ot-fcicmm-infra"
+program = "ot"

@@ -17,10 +17,6 @@ variable "enable_network_address_usage_metrics" {
   default     = false
 }
 
-variable "name" {
-  description = "Name to be used on all the resources as identifier"
-  type        = string
-}
 
 variable "route53_zone" {
   description = "Name of the private route53 hosted zone"
@@ -28,17 +24,6 @@ variable "route53_zone" {
   default     = "non-prod.internal"
 }
 
-variable "tags" {
-  description = "A map of tags to add to all resources"
-  type        = map(string)
-  default     = {}
-}
-
-variable "vpc_tags" {
-  description = "Additional tags for the VPC"
-  type        = map(string)
-  default     = {}
-}
 
 # Flags for resource creation
 variable "create_igw" {
@@ -117,11 +102,7 @@ variable "public_subnets" {
   default     = []
 }
 
-variable "public_subnets_tags" {
-  description = "Additional tags for the public subnets"
-  type        = map(string)
-  default     = {}
-}
+
 
 variable "private_subnets" {
   description = "A list of private subnets inside the VPC"
@@ -129,11 +110,6 @@ variable "private_subnets" {
   default     = []
 }
 
-variable "private_subnets_tags" {
-  description = "Additional tags for the private subnets"
-  type        = map(string)
-  default     = {}
-}
 
 variable "database_subnets" {
   description = "A list of database subnets inside the VPC"
@@ -141,11 +117,7 @@ variable "database_subnets" {
   default     = []
 }
 
-variable "database_subnets_tags" {
-  description = "Additional tags for the database subnets"
-  type        = map(string)
-  default     = {}
-}
+
 
 variable "additional_private_routes" {
   description = "List of private subnets routes with map"
@@ -191,13 +163,13 @@ variable "create_private_nacl" {
 variable "public_nacl_rules" {
   description = "List of NACL rules for public subnets"
   type = list(object({
-    rule_number = number
-    egress      = bool
-    protocol    = string
-    rule_action = string
-    cidr_block  = string
-    from_port   = number
-    to_port     = number
+    rule_number    = number
+    egress         = bool
+    protocol       = string
+    rule_action    = string
+    cidr_block     = string
+    from_port      = number
+    to_port        = number
   }))
   default = []
 }
@@ -205,17 +177,64 @@ variable "public_nacl_rules" {
 variable "private_nacl_rules" {
   description = "List of NACL rules for private subnets"
   type = list(object({
-    rule_number = number
-    egress      = bool
-    protocol    = string
-    rule_action = string
-    cidr_block  = string
-    from_port   = number
-    to_port     = number
+    rule_number    = number
+    egress         = bool
+    protocol       = string
+    rule_action    = string
+    cidr_block     = string
+    from_port      = number
+    to_port        = number
   }))
   default = []
 }
 
+
+################################### Naming convention variables #########################################
+
+variable "bu" {
+  description = "Business unit name (e.g., BP, GURUKU). Max 6 characters."
+  type        = string
+
+  validation {
+    condition     = length(var.bu) <= 6
+    error_message = "The business unit name must be less than or equal to 6 characters."
+  }
+}
+
+variable "program" {
+  description = "Name of the program (e.g., OT, BP)."
+  type        = string
+}
+
+variable "app" {
+  description = "Application name (e.g., network, shared). Max 6 characters."
+  type        = string
+
+  validation {
+    condition     = length(var.app) <= 6
+    error_message = "The app name must be less than or equal to 6 characters."
+  }
+}
+
+variable "env" {
+  description = "Environment code: 'd' (dev), 'p' (prod), 'q' (qa), 's' (stage), 'g' (global)."
+  type        = string
+
+  validation {
+    condition     = contains(["d", "p", "q", "s", "g"], var.env)
+    error_message = "env must be one of 'd', 'p', 'q', 's', 'g'."
+  }
+}
+
+variable "team" {
+  description = "Team email responsible for the application (e.g., digitalops@gehealthcare.com)."
+  type        = string
+}
+
+variable "region" {
+  description = "AWS region (e.g., us-east-1, ap-south-1)."
+  type        = string
+}
 
 ###########################################################
 # vpc endpoint

@@ -6,9 +6,10 @@ resource "aws_vpc" "vpc" {
   instance_tenancy                     = var.instance_tenancy
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
   tags = merge(
-    { "Name" = format("%s-vpc", var.name) },
-    var.tags,
-    var.vpc_tags
+    {
+      Name = "${local.base_name}-vpc"
+    },
+    local.common_tags
   )
 }
 
@@ -20,8 +21,10 @@ resource "aws_route53_zone" "vpc_route53" {
     vpc_id = aws_vpc.vpc.id
   }
   tags = merge(
-    { "Name" = format("%s-route53-zone", var.name) },
-    var.tags
+    {
+      Name = "${local.base_name}-route53"
+    },
+    local.common_tags
   )
 }
 
@@ -30,35 +33,39 @@ resource "aws_internet_gateway" "igw" {
   count  = var.create_igw ? 1 : 0
   vpc_id = aws_vpc.vpc.id
   tags = merge(
-    { "Name" = format("%s-igw", var.name) },
-    var.tags
+    {
+      Name = "${local.base_name}-igw"
+    },
+    local.common_tags
   )
 }
 
-# Public route table creation (based on create_public_route_table)
+# Public route table creation
 resource "aws_route_table" "public_route_table" {
   count  = var.create_public_route_table ? 1 : 0
   vpc_id = aws_vpc.vpc.id
+
   tags = merge(
-    { "Name" = format("%s-public-rt", var.name) },
-    var.tags
+    {
+      Name = "${local.base_name}-public-rt"
+    },
+    local.common_tags
   )
 }
 
-# Default route for public route table (if public route table exists)
 resource "aws_route" "default_public_route" {
-  count                  = var.create_igw && var.create_public_route_table ? 1 : 0
-  route_table_id         = aws_route_table.public_route_table[0].id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw[0].id
+  count                   = var.create_igw && var.create_public_route_table ? 1 : 0
+  route_table_id          = aws_route_table.public_route_table[0].id
+  destination_cidr_block  = "0.0.0.0/0"
+  gateway_id              = aws_internet_gateway.igw[0].id
 }
 
-# Updating main route table to public route table (based on create_public_route_table)
-resource "aws_main_route_table_association" "default_public_route" {
-  count          = var.create_public_route_table ? 1 : 0
+resource "aws_route_table_association" "public" {
+  count          = var.create_public_route_table && var.create_public_subnets ? length(var.public_subnets) : 0
+  subnet_id      = aws_subnet.public_subnet[count.index].id
   route_table_id = aws_route_table.public_route_table[0].id
-  vpc_id         = aws_vpc.vpc.id
 }
+
 
 # Additional Routes to public route table (condition on create_public_route_table)
 resource "aws_route" "additional_public_route" {
@@ -76,9 +83,10 @@ resource "aws_subnet" "public_subnet" {
   cidr_block              = var.public_subnets[count.index]
   map_public_ip_on_launch = true
   tags = merge(
-    { "Name" = format("${var.name}-public-%s", element(var.azs, count.index)) },
-    var.tags,
-    var.public_subnets_tags
+    {
+      Name = "${local.base_name}-public-${count.index}"
+    },
+    local.common_tags
   )
 }
 
@@ -90,21 +98,25 @@ resource "aws_subnet" "private_subnet" {
   cidr_block              = var.private_subnets[count.index]
   map_public_ip_on_launch = false
   tags = merge(
-    { "Name" = format("${var.name}-private-%s", element(var.azs, count.index)) },
-    var.tags,
-    var.private_subnets_tags
+    {
+      Name = "${local.base_name}-application-${count.index}"
+    },
+    local.common_tags
   )
 }
 
-# Private route table creation (based on create_private_route_table)
 resource "aws_route_table" "private_route_table" {
-  count  = var.create_private_route_table ? length(var.azs) : 0
+  count  = var.create_private_route_table ? 1 : 0
   vpc_id = aws_vpc.vpc.id
+
   tags = merge(
-    { "Name" = format("%s-private-rt-%s", var.name, element(var.azs, count.index)) },
-    var.tags
+    {
+      Name = "${local.base_name}-private-rt"
+    },
+    local.common_tags
   )
 }
+
 
 # Private route table association (based on create_private_route_table)
 resource "aws_route_table_association" "private_route_table_association" {
@@ -115,42 +127,57 @@ resource "aws_route_table_association" "private_route_table_association" {
 
 # Nat gateway elastic ip (condition on create_nacl)
 resource "aws_eip" "nat" {
-  count  = var.create_nacl && var.create_nat_gateway ? length(var.azs) : 0
+  count  = var.create_nat_gateway && var.create_public_subnets ? 1 : 0
   domain = "vpc"
 
   tags = merge(
-    { "Name" = format("%s-eip-%s", var.name, element(var.azs, count.index)) },
-    var.tags
+    {
+      Name = "${local.base_name}-nat-eip"
+    },
+    local.common_tags
   )
 
   depends_on = [aws_internet_gateway.igw]
 }
+
 
 # NAT Gateway Creation (condition on create_nacl)
 resource "aws_nat_gateway" "nat_gateway" {
-  count         = var.create_nat_gateway && length(aws_subnet.public_subnet) > 0 ? 1 : 0
+  count         = var.create_nat_gateway && var.create_public_subnets ? 1 : 0
   subnet_id     = aws_subnet.public_subnet[0].id
-  allocation_id = aws_eip.nat[count.index].id
+  allocation_id = aws_eip.nat[0].id
 
   tags = merge(
-    { "Name" = format("%s-nat-%s", var.name, element(var.azs, count.index)) },
-    var.tags
+    {
+      Name = "${local.base_name}-nat"
+    },
+    local.common_tags
   )
 
   depends_on = [aws_internet_gateway.igw]
 }
 
+resource "aws_route" "default_private_route" {
+  count = var.create_private_route_table && var.create_nat_gateway ? 1 : 0
+
+  route_table_id         = aws_route_table.private_route_table[0].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway[0].id
+}
+
+
 # Database Subnet Creation
 resource "aws_subnet" "database_subnet" {
-  count                   = length(var.database_subnets) > 0 ? length(var.database_subnets) : 0
+  count             = length(var.database_subnets) > 0 ? length(var.database_subnets) : 0
   vpc_id                  = aws_vpc.vpc.id
   availability_zone       = element(var.azs, count.index)
   cidr_block              = var.database_subnets[count.index]
   map_public_ip_on_launch = false
   tags = merge(
-    { "Name" = format("%s-db-%s", var.name, element(var.azs, count.index)) },
-    var.tags,
-    var.database_subnets_tags
+    {
+      Name = "${local.base_name}-db--${count.index}"
+    },
+    local.common_tags
   )
 }
 
@@ -159,7 +186,8 @@ data "aws_caller_identity" "current_account" {}
 
 resource "aws_s3_bucket" "flow_logs_bucket" {
   count  = var.flow_logs_enabled ? 1 : 0
-  bucket = format("%s-%s-flow-logs-bucket", var.name, data.aws_caller_identity.current_account.account_id)
+  bucket = format("%s-flow-logs-bucket", data.aws_caller_identity.current_account.account_id)
+  force_destroy = true
 }
 
 resource "aws_flow_log" "vpc_flow_log" {
@@ -177,19 +205,25 @@ resource "aws_flow_log" "vpc_flow_log" {
 
 # NACL creation (based on create_nacl)
 resource "aws_network_acl" "public" {
-  count  = var.create_public_nacl ? 1 : 0
+  count = var.create_public_nacl ? 1 : 0
   vpc_id = aws_vpc.vpc.id
-  tags = {
-    Name = "${var.name}-public-nacl"
-  }
+  tags = merge(
+    {
+      Name = "${local.base_name}-public-nacl"
+    },
+    local.common_tags
+  )
 }
 
 resource "aws_network_acl" "private" {
-  count  = var.create_private_nacl ? 1 : 0
+  count = var.create_private_nacl ? 1 : 0
   vpc_id = aws_vpc.vpc.id
-  tags = {
-    Name = "${var.name}-private-nacl"
-  }
+  tags = merge(
+    {
+      Name = "${local.base_name}-private-nacl"
+    },
+    local.common_tags
+  )
 }
 
 resource "aws_network_acl_association" "public_assoc" {
@@ -199,8 +233,8 @@ resource "aws_network_acl_association" "public_assoc" {
 }
 
 resource "aws_network_acl_association" "private_assoc" {
-  count          = var.create_nacl && var.create_private_subnets ? length(aws_subnet.private_subnet) : 0
-  subnet_id      = aws_subnet.private_subnet[count.index].id
+ count = var.create_nacl && var.create_private_subnets ? length(aws_subnet.private_subnet) : 0
+ subnet_id      = aws_subnet.private_subnet[count.index].id
   network_acl_id = aws_network_acl.private[0].id
 }
 
@@ -219,15 +253,18 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = aws_route_table.private_route_table[*].id
 
 
-  tags = {
-    Name = "${var.name}-s3-endpoint"
-  }
+  tags = merge(
+    {
+      Name = "${local.base_name}-s3-endpoint"
+    },
+    local.common_tags
+  )
 }
 
 # Security Group for VPC Endpoints
 resource "aws_security_group" "endpoint_sg" {
   count       = var.enable_endpoint_sg ? 1 : 0
-  name        = "${var.name}-vpc-endpoint-sg"
+  name        = "${local.base_name}-endpoint-sg"
   description = "Security group for VPC endpoints"
   vpc_id      = aws_vpc.vpc.id
 
@@ -254,8 +291,10 @@ resource "aws_security_group" "endpoint_sg" {
   }
 
   tags = merge(
-    { "Name" = format("%s-vpc-endpoint-sg", var.name) },
-    var.tags
+    {
+      Name = "${local.base_name}-endpoint-sg"
+    },
+    local.common_tags
   )
 }
 
@@ -269,9 +308,12 @@ resource "aws_vpc_endpoint" "ec2" {
   security_group_ids  = [aws_security_group.endpoint_sg[0].id]
   private_dns_enabled = var.ec2_private_dns_enabled
 
-  tags = {
-    Name = "${var.name}-ec2-endpoint"
-  }
+  tags = merge(
+    {
+      Name = "${local.base_name}-ec2-endpoint"
+    },
+    local.common_tags
+  )
   depends_on = [
     aws_security_group.endpoint_sg[0]
   ]
@@ -287,9 +329,12 @@ resource "aws_vpc_endpoint" "nlb" {
   security_group_ids  = [aws_security_group.endpoint_sg[0].id]
   private_dns_enabled = var.nlb_private_dns_enabled
 
-  tags = {
-    Name = "${var.name}-nlb-endpoint"
-  }
+  tags = merge(
+    {
+      Name = "${local.base_name}-nlb-endpoint"
+    },
+    local.common_tags
+  )
   depends_on = [
     aws_security_group.endpoint_sg[0]
   ]

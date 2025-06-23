@@ -35,7 +35,7 @@ output "public_route_table_id" {
 
 output "public_subnets" {
   description = "List of public subnet IDs"
-  value       = module.network.public_subnets
+  value       = module.network.public_subnets_ids
 }
 
 output "public_subnets_cidr_blocks" {
@@ -50,7 +50,7 @@ output "route53_zone_id" {
 
 output "private_subnets" {
   description = "List of private subnet IDs"
-  value       = module.network.private_subnets
+  value       = module.network.private_subnets_ids
 }
 
 output "private_subnets_cidr_blocks" {
@@ -75,7 +75,7 @@ output "nat_gateway_id" {
 
 output "database_subnets" {
   description = "List of database subnet IDs"
-  value       = module.network.database_subnets
+  value       = module.network.database_subnets_ids
 }
 
 output "database_subnets_cidr_blocks" {
@@ -101,7 +101,7 @@ output "private_nacl_id" {
   value = module.network.private_nacl_id
 }
 
-# # VPC Endpoint Outputs
+
 
 output "s3_endpoint_id" {
   description = "The ID of the S3 VPC endpoint"
