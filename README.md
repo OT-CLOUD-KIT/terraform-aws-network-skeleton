@@ -4,7 +4,7 @@ A terraform module which creates network skeleton on AWS with best practices in 
 
 ## Architecture
 
-![](https://raw.githubusercontent.com/OT-CLOUD-KIT/terraform-aws-network-skeleton/refs/heads/main/assets/network-skeleton.gif)
+![_network_skeleton drawio](https://github.com/user-attachments/assets/cc42a4fb-b88c-41f6-846e-a6270babcf86)
 
 
 ## Providers
