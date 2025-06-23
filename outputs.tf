@@ -140,6 +140,14 @@ output "nlb_endpoint" {
   } : null
 }
 
+output "endpoint_security_group_rules" {
+  description = "Ingress and egress rules of the endpoint security group"
+  value = var.enable_endpoint_sg ? {
+    ingress = aws_security_group.endpoint_sg[0].ingress
+    egress  = aws_security_group.endpoint_sg[0].egress
+  } : null
+}
+
 output "endpoint_security_group" {
   description = "Details of the endpoint security group"
   value = var.enable_endpoint_sg ? {
