@@ -263,7 +263,7 @@ resource "aws_security_group" "endpoint_sg" {
 resource "aws_vpc_endpoint" "ec2" {
   count               = var.enable_ec2_endpoint ? 1 : 0
   vpc_id              = aws_vpc.vpc.id
-  service_name        = var.ec2_endpoint_type
+  service_name        = var.service_name_ec2
   vpc_endpoint_type   = var.ec2_endpoint_type
   subnet_ids          = aws_subnet.private_subnet[*].id
   security_group_ids  = [aws_security_group.endpoint_sg[0].id]
