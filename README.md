@@ -16,7 +16,7 @@ A terraform module which creates network skeleton on AWS with best practices in 
 
 ```hcl
 module "network" {
-  source = "./module"
+  source = "../"
 
   name                                 = "test-vpc"
   cidr_block                           = "10.1.0.0/16"
@@ -25,7 +25,6 @@ module "network" {
   azs                                  = ["us-east-1a", "us-east-1b"]
   public_subnets                       = ["10.1.1.0/24", "10.1.2.0/24"]
   private_subnets                      = ["10.1.12.0/24", "10.1.13.0/24", "10.1.14.0/24"]
-  database_subnets                     = []
   route53_zone                         = "non-prod.internal"
   flow_logs_enabled                    = false
   additional_public_routes             = {}
@@ -43,34 +42,23 @@ module "network" {
   private_subnets_tags = {
     Tier = "application"
   }
-  database_subnets_tags = {}
-
-  create_database_subnets    = false
-  create_igw                 = true
-  create_nat_gateway         = false
-  create_public_nacl         = false
-  create_private_nacl        = false
-  create_private_route_table = true
-  create_public_route_table  = true
-  create_private_subnets     = true
-  create_public_subnets      = true
-  create_route53             = false
-  create_nacl                = false
-
-  enable_s3_endpoint  = true
-  enable_ec2_endpoint = false
-  enable_nlb_endpoint = false
-  enable_endpoint_sg  = false
-
-  service_name_s3      = "com.amazonaws.us-east-1.s3"
-  s3_endpoint_type     = "Gateway"
-  service_name_ec2     = "com.amazonaws.us-east-1.ec2"
-  ec2_endpoint_type    = "Interface"
-  ec2_private_dns_enabled = true
-  service_name_nlb     = "com.amazonaws.us-east-1.elasticloadbalancing"
-  nlb_endpoint_type    = "Interface"
-  nlb_private_dns_enabled = true
-
+  database_subnets_tags                = {}
+  create_database_subnets              = false
+  create_igw                           = true
+  create_nat_gateway                   = false
+  create_public_nacl                   = false
+  create_private_nacl                  = false
+  create_private_route_table           = true
+  create_public_route_table            = true
+  create_private_subnets               = true
+  create_public_subnets                = true
+  create_route53                       = false
+  create_nacl                          = false
+  database_subnets                     = []
+  enable_s3_endpoint                   = true
+  enable_ec2_endpoint                  = false
+  enable_nlb_endpoint                  = false
+  enable_endpoint_sg                   = false
   endpoint_sg_rules = [
     {
       description = "HTTPS from VPC"
@@ -89,49 +77,16 @@ module "network" {
       cidr_blocks = ["10.0.0.0/16"]
     }
   ]
-
-  public_nacl_rules = [
-    {
-      rule_number = 100
-      egress      = false
-      protocol    = "tcp"
-      rule_action = "allow"
-      cidr_block  = "0.0.0.0/0"
-      from_port   = 80
-      to_port     = 80
-    },
-    {
-      rule_number = 200
-      egress      = false
-      protocol    = "-1"
-      rule_action = "allow"
-      cidr_block  = "0.0.0.0/0"
-      from_port   = 0
-      to_port     = 0
-    }
-  ]
-
-  private_nacl_rules = [
-    {
-      rule_number = 100
-      egress      = false
-      protocol    = "tcp"
-      rule_action = "allow"
-      cidr_block  = "10.0.0.0/8"
-      from_port   = 443
-      to_port     = 443
-    },
-    {
-      rule_number = 200
-      egress      = false
-      protocol    = "-1"
-      rule_action = "allow"
-      cidr_block  = "0.0.0.0/0"
-      from_port   = 0
-      to_port     = 0
-    }
-  ]
+  service_name_s3          = "com.amazonaws.us-east-1.s3"
+  s3_endpoint_type         = "Gateway"
+  service_name_ec2         = "com.amazonaws.us-east-1.ec2"
+  ec2_endpoint_type        = "Interface"
+  ec2_private_dns_enabled  = true
+  service_name_nlb         = "com.amazonaws.us-east-1.elasticloadbalancing"
+  nlb_endpoint_type        = "Interface"
+  nlb_private_dns_enabled  = true
 }
+
 
 ```
 
