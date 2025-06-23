@@ -45,31 +45,7 @@ module "network" {
 }
 
 
-# module "vpc_endpoints" {
-#   for_each = var.vpc_endpoints
 
-#   source              = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-vpc-endpoints.git?ref=Feature"
-
-#   vpc_id              = var.vpc_id
-#   service_name        = each.value.service_name
-#   vpc_endpoint_type   = each.value.vpc_endpoint_type
-#   subnet_ids          = each.value.subnet_ids
-#   security_group_ids  = each.value.security_group_ids
-#   route_table_ids     = each.value.route_table_ids
-#   auto_accept         = each.value.auto_accept
-#   private_dns_enabled = each.value.private_dns_enabled
-#   name                = each.value.name
-#   tags                = var.common_tags
-
-# }
-
-# module "sg_example" {
-#   source                       = "git::https://github.com/OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v.0.0.4"
-#   vpc_id                       = module.network.vpc_id
-#   tags                         = module.standard_tags.standard_tags
-#   name                         = module.naming.naming_tag[0]
-#   aws_security_group_variables = var.aws_security_group_variables
-# }
 
 module "naming" {
   source   = "git@github.com:OT-CLOUD-KIT/terraform-aws-naming.git?ref=dev"
