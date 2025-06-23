@@ -6,11 +6,13 @@ A terraform module which creates network skeleton on AWS with best practices in 
 
 ![](https://raw.githubusercontent.com/OT-CLOUD-KIT/terraform-aws-network-skeleton/refs/heads/main/assets/network-skeleton.gif)
 
+
 ## Providers
 
 | Name                                              | Version  |
 |---------------------------------------------------|----------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 5.82.2   |
+| <a name="terraform_module"></a> [Terraform](Terraform\module) | >= 1.12.1|
 
 ## Usage
 
@@ -173,3 +175,10 @@ module "network" {
 | <a name="output_all_vpc_endpoint_ids"></a> [all\_vpc\_endpoint\_ids](#output\_all\_vpc\_endpoint\_ids)                        | Map of all created VPC endpoint IDs                             |
 | <a name="output_endpoint_sg_ingress_rules"></a> [endpoint\_sg\_ingress\_rules](#output\_endpoint\_sg\_ingress\_rules)         | List of ingress rules for the endpoint security group           |
 | <a name="output_endpoint_sg_egress_rules"></a> [endpoint\_sg\_egress\_rules](#output\_endpoint\_sg\_egress\_rules)            | List of egress rules for the endpoint security group            |
+
+
+## Contributors
+
+- [Piyush Upadhyay](https://github.com/piiiyuushh)
+- [Nikita Joshi](https://github.com/jnikita19)
+
