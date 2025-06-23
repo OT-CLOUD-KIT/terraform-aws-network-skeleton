@@ -1,5 +1,5 @@
 module "network" {
-  source = "./module"
+  source = "../"
 
   name                                 = var.name
   cidr_block                           = var.cidr_block
