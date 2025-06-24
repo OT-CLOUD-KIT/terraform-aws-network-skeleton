@@ -1,5 +1,5 @@
 module "network" {
-  source = "./module"
+  source = "../"
 
   region                               = var.region
   cidr_block                           = var.cidr_block
