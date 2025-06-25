@@ -1,6 +1,6 @@
 locals {
   # Standard tag components
-  base_name = "${var.bu}-${var.program}-${var.app}-${var.env}"
+  base_name = "${var.env}-${var.bu}-${var.app}"
 
   common_tags = {
     "BusinessUnit" = var.bu

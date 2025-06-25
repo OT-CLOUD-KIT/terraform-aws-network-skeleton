@@ -1,5 +1,26 @@
+module "naming" {
+  source   = "git@github.com:OT-CLOUD-KIT/terraform-aws-naming.git?ref=dev"
+  bu       = var.bu
+  env      = var.env
+  app      = var.app
+  tenant   = var.tenant
+  resource = var.resource
+}
+
+module "standard_tags" {
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-standard-tagging.git?ref=dev"
+
+  bu      = var.bu
+  program = var.program
+  app     = var.app
+  team    = var.team
+  region  = var.region
+  env     = var.env
+}
+
+
 module "network" {
-  source = "../"
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
 
   region                               = var.region
   cidr_block                           = var.cidr_block
@@ -47,22 +68,4 @@ module "network" {
 
 
 
-module "naming" {
-  source   = "git@github.com:OT-CLOUD-KIT/terraform-aws-naming.git?ref=dev"
-  bu       = var.bu
-  env      = var.env
-  app      = var.app
-  tenant   = var.tenant
-  resource = var.resource
-}
 
-module "standard_tags" {
-  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-standard-tagging.git?ref=dev"
-
-  bu      = var.bu
-  program = var.program
-  app     = var.app
-  team    = var.team
-  region  = var.region
-  env     = var.env
-}
