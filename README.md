@@ -18,9 +18,9 @@ A terraform module which creates network skeleton on AWS with best practices in 
 
 ```hcl
 module "network" {
-  source = "../"
+  source = "OT-CLOUD-KIT/terraform-aws-network-skeleton"
 
-  name                                 = "test-vpc"
+  name                                 = "dev-ot-cloud-vpc"
   cidr_block                           = "10.1.0.0/16"
   instance_tenancy                     = "default"
   enable_network_address_usage_metrics = false
@@ -36,7 +36,7 @@ module "network" {
     Project     = "du-project"
   }
   vpc_tags = {
-    Name = "nonprod-vpc"
+    Name = "dev-ot-cloud-vpc"
   }
   public_subnets_tags = {
     Tier = "public"
