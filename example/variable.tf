@@ -30,26 +30,32 @@ variable "route53_zone" {
 variable "create_igw" {
   description = "Whether to create an Internet Gateway"
   type        = bool
+  default = true
+
 }
 
 variable "create_nat_gateway" {
   description = "Whether to create NAT Gateways"
   type        = bool
+  default = true
 }
 
 variable "create_database_subnets" {
   description = "Whether to create database subnets"
   type        = bool
+  default = true
 }
 
 variable "create_public_subnets" {
   description = "Whether to create public subnets"
   type        = bool
+  default = true
 }
 
 variable "create_private_subnets" {
   description = "Whether to create private subnets"
   type        = bool
+  default = true
 }
 
 variable "create_public_route_table" {
@@ -70,6 +76,7 @@ variable "create_nacl" {
 variable "create_route53" {
   description = "Whether to create private Route53 zone"
   type        = bool
+  default = true
 }
 
 variable "additional_public_routes" {
@@ -88,24 +95,26 @@ variable "azs" {
     condition     = length(var.azs) > 0
     error_message = "You must provide at least one AZ."
   }
+  default = [ "us-east-1a" ,"us-east-1b" ]
+
 }
 
 variable "public_subnets" {
   description = "A list of public subnets inside the VPC"
   type        = list(string)
-  default     = []
+  default     = ["10.0.1.0/24"]
 }
 
 variable "private_subnets" {
   description = "A list of private subnets inside the VPC"
   type        = list(string)
-  default     = []
+  default     = ["10.0.12.0/24", "10.0.13.0/24"]
 }
 
 variable "database_subnets" {
   description = "A list of database subnets inside the VPC"
   type        = list(string)
-  default     = []
+  default     = ["10.0.14.0/24"]
 }
 
 variable "additional_private_routes" {
@@ -120,7 +129,7 @@ variable "additional_private_routes" {
 variable "flow_logs_enabled" {
   description = "Whether to enable VPC flow logs or not"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "flow_logs_traffic_type" {
@@ -139,11 +148,13 @@ variable "flow_logs_file_format" {
 variable "create_public_nacl" {
   description = "Flag to create public NACL"
   type        = bool
+  default = true
 }
 
 variable "create_private_nacl" {
   description = "Flag to create private NACL"
   type        = bool
+  default = true
 }
 
 variable "public_nacl_rules" {
@@ -157,7 +168,24 @@ variable "public_nacl_rules" {
     from_port   = number
     to_port     = number
   }))
-  default = []
+  default = [{
+    rule_number = 100
+    egress      = true
+    protocol    = "tcp"
+    rule_action = "allow"
+    cidr_block  = "0.0.0.0/0"
+    from_port   = 80
+    to_port     = 80
+  },
+  {
+    rule_number = 200
+    egress      = true
+    protocol    = "-1"
+    rule_action = "allow"
+    cidr_block  = "0.0.0.0/0"
+    from_port   = 0
+    to_port     = 0
+  }]
 }
 
 variable "private_nacl_rules" {
@@ -171,7 +199,24 @@ variable "private_nacl_rules" {
     from_port   = number
     to_port     = number
   }))
-  default = []
+  default = [{
+    rule_number = 100
+    egress      = true
+    protocol    = "tcp"
+    rule_action = "allow"
+    cidr_block  = "10.0.0.0/8"
+    from_port   = 443
+    to_port     = 443
+  },
+  {
+    rule_number = 200
+    egress      = true
+    protocol    = "-1"
+    rule_action = "allow"
+    cidr_block  = "0.0.0.0/0"
+    from_port   = 0
+    to_port     = 0
+  }]
 }
 
 ######################## vpc endpoint variable ###################
@@ -207,56 +252,73 @@ variable "endpoint_sg_rules" {
     protocol    = string
     cidr_blocks = list(string)
   }))
-  default = []
+  default = [ {
+    description = "HTTPS from VPC"
+    type        = "ingress"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  },
+  {
+    description = "DNS from VPC"
+    type        = "ingress"
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }]
 }
 
 variable "service_name_s3" {
-  description = ""
+  description = "service name of s3"
   type        = string
-  default     = ""
+  default     = "com.amazonaws.us-east-1.s3"
 
 }
 
 variable "s3_endpoint_type" {
-  description = ""
+  description = "endpoint type for s3"
   type        = string
-  default     = ""
+  default     = "Gateway"
 }
+
 variable "service_name_ec2" {
-  description = ""
+  description = "service name for ec2"
   type        = string
-  default     = ""
+  default     = "com.amazonaws.us-east-1.ec2"
 
 }
 
 variable "ec2_endpoint_type" {
-  description = ""
+  description = "endpoint type for ec2"
   type        = string
-  default     = ""
+  default     = "Interface"
 }
 
 variable "ec2_private_dns_enabled" {
-  description = ""
+  description = "Whether to enable private DNS for EC2 endpoint"
   type        = bool
-  default     = true
+  default = true
 }
 
 variable "service_name_nlb" {
-  description = ""
+  description = "service name for NLB"
   type        = string
-  default     = ""
+  default     = "com.amazonaws.us-east-1.elasticloadbalancing"
 
 }
 
 variable "nlb_endpoint_type" {
-  description = ""
+  description = "endpoint type for NLB"
   type        = string
-  default     = ""
+  default = "Interface"
 }
 
 variable "nlb_private_dns_enabled" {
-  description = ""
+  description = "Whether to enable private DNS for NLB endpoint"
   type        = bool
+  default = true
 }
 
 ################### Naming convention variables ###################
@@ -264,6 +326,7 @@ variable "nlb_private_dns_enabled" {
 variable "env" {
   description = "Environment short name. Must be one of: d (dev), p (prod), q (qa), s (stage), g (global)."
   type        = string
+  default = "d"
   validation {
     condition     = contains(["d", "p", "q", "s", "g"], var.env)
     error_message = "env must be one of 'd', 'p', 'q', 's', 'g'."
@@ -273,6 +336,7 @@ variable "env" {
 variable "bu" {
   description = "Business unit name (e.g., pcs, ultrasound). Max 5 characters."
   type        = string
+  default = "OT"
   validation {
     condition     = length(var.bu) <= 5
     error_message = "The business unit name must be less than or equal to 5 characters."
@@ -282,6 +346,7 @@ variable "bu" {
 variable "app" {
   description = "Application name (e.g., network, shared). Max 6 characters."
   type        = string
+  default = "BP"
   validation {
     condition     = length(var.app) <= 6
     error_message = "The app name must be less than or equal to 6 characters."
@@ -291,7 +356,7 @@ variable "app" {
 variable "resource" {
   description = "Resource name (e.g., eks, efs, ecr). Max 8 characters."
   type        = string
-  default     = ""
+  default     = "Network"
   validation {
     condition     = length(var.resource) <= 8
     error_message = "The resource name must be less than or equal to 8 characters."
@@ -331,30 +396,36 @@ variable "random_alphanumeric_len" {
 variable "special" {
   description = "Include special characters like !@#$%&*()-_=+[]{}<>:? in the generated name."
   type        = bool
+  default = true
 }
 
 variable "upper" {
   description = "Include uppercase characters in the generated name."
   type        = bool
+  default = true
 }
 
 variable "number" {
   description = "Include numbers in the generated name."
   type        = bool
+  default = true
 }
 
 variable "gen_no_of_names" {
   description = "Number of names to generate."
   type        = number
+  default = 1
 }
 
 variable "team" {
   description = "The email address of the team who owns the application, ex:digitalops@gehealthcare.com"
   type        = string
+  default = "infra"
 }
 
 variable "program" {
   description = "Name of the Program, For ex: OT, BP etc."
   type        = string
+  default = "ot"
 }
 
