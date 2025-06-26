@@ -12,14 +12,14 @@ route53_zone = "non-prod.internal"
 
 
 azs              = ["us-east-1a", "us-east-1b"]
-public_subnets   = ["10.0.1.0/24"]
+public_subnets   = ["10.0.1.0/24","10.0.2.0/24"]
 private_subnets  = ["10.0.12.0/24", "10.0.13.0/24"]
 database_subnets = ["10.0.14.0/24"]
 
 # Flags for resource creation
 create_igw                 = true
-create_nat_gateway         = true
-create_database_subnets    = true
+create_nat_gateway         = false
+create_database_subnets    = false
 create_public_subnets      = true
 create_private_subnets     = true
 create_public_route_table  = true
@@ -146,3 +146,58 @@ gen_no_of_names = 1
 
 team    = "infra"
 program = "ot"
+
+
+########################ALB #####################3333
+
+
+create_sg      = true
+create_alb     = true
+existing_sg_id = "" # Leave empty if `create_sg = true`
+
+alb_internal = false # true for internal ALB, false for internet-facing
+
+alb_certificate_arn = ""
+
+enable_deletion_protection = false
+
+access_logs = {
+  enabled = false
+  bucket  = ""
+  prefix  = ""
+}
+
+security_group_ingress_rules = {
+  "http" = {
+    description  = "Allow HTTP"
+    from_port    = 80
+    to_port      = 80
+    protocol     = "tcp"
+    cidr         = ["0.0.0.0/0"]
+    ipv6_cidr    = []
+    source_SG_ID = ""
+  },
+  "https" = {
+    description  = "Allow HTTPS"
+    from_port    = 443
+    to_port      = 443
+    protocol     = "tcp"
+    cidr         = ["0.0.0.0/0"]
+    ipv6_cidr    = []
+    source_SG_ID = ""
+  }
+}
+
+security_group_egress_rules = {
+  "all-egress" = {
+    description  = "Allow all egress"
+    from_port    = 0
+    to_port      = 0
+    protocol     = "-1"
+    cidr         = ["0.0.0.0/0"]
+    ipv6_cidr    = []
+    source_SG_ID = ""
+  }
+}
+
+provisioner = "terraform"

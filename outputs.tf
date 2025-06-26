@@ -157,3 +157,41 @@ output "endpoint_security_group" {
     vpc_id      = aws_security_group.endpoint_sg[0].vpc_id
   } : null
 }
+
+
+###############ALB ##############3
+
+output "alb_arn" {
+  value       = var.create_alb ? one(aws_lb.alb[*].arn) : null
+  description = "The ARN of the ALB"
+}
+
+output "alb_dns_name" {
+  value       = var.create_alb ? one(aws_lb.alb[*].dns_name) : null
+  description = "The DNS name of the ALB"
+}
+
+output "alb_zone_id" {
+  value       = var.create_alb ? one(aws_lb.alb[*].zone_id) : null
+  description = "The zone ID of the ALB"
+}
+
+output "alb_http_listener_arn" {
+  value       = aws_lb_listener.alb_http_listener.arn
+  description = "The ARN of the ALB HTTP listener"
+}
+
+output "alb_https_listener_arn" {
+  value       = try(aws_lb_listener.alb_https_listener[0].arn, null)
+  description = "The ARN of the ALB HTTPS listener (if present)"
+}
+
+output "alb_security_group_id" {
+  value       = var.create_sg ? aws_security_group.alb_sg[0].id : var.existing_sg_id
+  description = "The security group ID of the ALB"
+}
+
+output "alb_security_group_arn" {
+  value       = var.create_sg ? aws_security_group.alb_sg[0].arn : null
+  description = "The security group ARN of the ALB"
+}

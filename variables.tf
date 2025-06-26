@@ -388,3 +388,130 @@ variable "nlb_private_dns_enabled" {
   type        = bool
   default = true
 }
+
+
+##############################ALB ####################################
+
+
+variable "create_sg" {
+  description = "Whether to create a new Security Group"
+  type        = bool
+  default     = true
+}
+
+variable "ingress_rule" {
+  type = list(object({
+    description  = string
+    from_port    = number
+    to_port      = number
+    protocol     = string
+    cidr         = optional(list(string), [])
+    ipv6_cidr    = optional(list(string), [])
+    source_SG_ID = optional(string, "")
+  }))
+  default = [
+    {
+      description  = ""
+      from_port    = 80
+      to_port      = 80
+      protocol     = "tcp"
+      cidr   =   ["0.0.0.0/0"]
+    },
+    {
+      description  = ""
+      from_port    = 443
+      to_port      = 443
+      protocol     = "tcp"
+      cidr  =  ["0.0.0.0/0"]
+    }
+  ]
+  description = "List of ingress rules for security group"
+}
+
+variable "egress_rule" {
+  type = list(object({
+    description  = string
+    from_port    = number
+    to_port      = number
+    protocol     = string
+    cidr         = optional(list(string), [])
+    ipv6_cidr    = optional(list(string), [])
+    source_SG_ID = optional(string, "")
+  }))
+  default = [
+    {
+      description  = "Allow all outbound traffic"
+      from_port    = 0
+      to_port      = 0
+      protocol     = "-1"
+      cidr         = ["0.0.0.0/0"]
+    }
+  ]
+  description = "List of egress rules for security group"
+}
+
+variable "allowed_cidrs" {
+  description = "List of allowed CIDRs for ALB"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection for ALB"
+  type        = bool
+  default     = true
+}
+
+variable "internal" {
+  description = "Whether the ALB is internal"
+  type        = bool
+  default     = false
+}
+
+variable "existing_sg_id" {
+  description = "ID of existing Security Group"
+  type        = string
+  default     = ""
+}
+
+variable "alb_certificate_arn" {
+  type        = string
+  description = "ARN of the SSL certificate for the HTTPS listener"
+}
+
+variable "enable_logging" {
+  type        = bool
+  default     = false
+  description = "Enable ALB access logs"
+}
+
+variable "logs_bucket" {
+  type        = string
+  description = "S3 bucket for ALB access logs"
+}
+
+
+variable "provisioner" {
+  description = "Provisioner for this resource"
+  type        = string
+  default     = "terraform"
+}
+
+
+
+variable "create_alb" {
+  description = "Whether to create a new Security Group"
+  type        = bool
+  default     = true
+}
+
+variable "access_logs" {
+  description = "Configuration for ALB access logs"
+  type = object({
+    enabled = bool
+    bucket  = string
+    prefix  = string
+  })
+}
+
+

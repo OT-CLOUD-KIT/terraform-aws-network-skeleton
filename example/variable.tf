@@ -30,32 +30,32 @@ variable "route53_zone" {
 variable "create_igw" {
   description = "Whether to create an Internet Gateway"
   type        = bool
-  default = true
+  default     = true
 
 }
 
 variable "create_nat_gateway" {
   description = "Whether to create NAT Gateways"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "create_database_subnets" {
   description = "Whether to create database subnets"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "create_public_subnets" {
   description = "Whether to create public subnets"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "create_private_subnets" {
   description = "Whether to create private subnets"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "create_public_route_table" {
@@ -76,7 +76,7 @@ variable "create_nacl" {
 variable "create_route53" {
   description = "Whether to create private Route53 zone"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "additional_public_routes" {
@@ -95,7 +95,7 @@ variable "azs" {
     condition     = length(var.azs) > 0
     error_message = "You must provide at least one AZ."
   }
-  default = [ "us-east-1a" ,"us-east-1b" ]
+  default = ["us-east-1a", "us-east-1b"]
 
 }
 
@@ -148,13 +148,13 @@ variable "flow_logs_file_format" {
 variable "create_public_nacl" {
   description = "Flag to create public NACL"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "create_private_nacl" {
   description = "Flag to create private NACL"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "public_nacl_rules" {
@@ -176,15 +176,15 @@ variable "public_nacl_rules" {
     cidr_block  = "0.0.0.0/0"
     from_port   = 80
     to_port     = 80
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
+    },
+    {
+      rule_number = 200
+      egress      = true
+      protocol    = "-1"
+      rule_action = "allow"
+      cidr_block  = "0.0.0.0/0"
+      from_port   = 0
+      to_port     = 0
   }]
 }
 
@@ -207,15 +207,15 @@ variable "private_nacl_rules" {
     cidr_block  = "10.0.0.0/8"
     from_port   = 443
     to_port     = 443
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
+    },
+    {
+      rule_number = 200
+      egress      = true
+      protocol    = "-1"
+      rule_action = "allow"
+      cidr_block  = "0.0.0.0/0"
+      from_port   = 0
+      to_port     = 0
   }]
 }
 
@@ -252,21 +252,21 @@ variable "endpoint_sg_rules" {
     protocol    = string
     cidr_blocks = list(string)
   }))
-  default = [ {
+  default = [{
     description = "HTTPS from VPC"
     type        = "ingress"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["10.0.0.0/16"]
-  },
-  {
-    description = "DNS from VPC"
-    type        = "ingress"
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
-    cidr_blocks = ["10.0.0.0/16"]
+    },
+    {
+      description = "DNS from VPC"
+      type        = "ingress"
+      from_port   = 53
+      to_port     = 53
+      protocol    = "udp"
+      cidr_blocks = ["10.0.0.0/16"]
   }]
 }
 
@@ -299,7 +299,7 @@ variable "ec2_endpoint_type" {
 variable "ec2_private_dns_enabled" {
   description = "Whether to enable private DNS for EC2 endpoint"
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "service_name_nlb" {
@@ -312,13 +312,13 @@ variable "service_name_nlb" {
 variable "nlb_endpoint_type" {
   description = "endpoint type for NLB"
   type        = string
-  default = "Interface"
+  default     = "Interface"
 }
 
 variable "nlb_private_dns_enabled" {
   description = "Whether to enable private DNS for NLB endpoint"
   type        = bool
-  default = true
+  default     = true
 }
 
 ################### Naming convention variables ###################
@@ -326,7 +326,7 @@ variable "nlb_private_dns_enabled" {
 variable "env" {
   description = "Environment short name. Must be one of: d (dev), p (prod), q (qa), s (stage), g (global)."
   type        = string
-  default = "d"
+  default     = "d"
   validation {
     condition     = contains(["d", "p", "q", "s", "g"], var.env)
     error_message = "env must be one of 'd', 'p', 'q', 's', 'g'."
@@ -336,7 +336,7 @@ variable "env" {
 variable "bu" {
   description = "Business unit name (e.g., pcs, ultrasound). Max 5 characters."
   type        = string
-  default = "OT"
+  default     = "OT"
   validation {
     condition     = length(var.bu) <= 5
     error_message = "The business unit name must be less than or equal to 5 characters."
@@ -346,7 +346,7 @@ variable "bu" {
 variable "app" {
   description = "Application name (e.g., network, shared). Max 6 characters."
   type        = string
-  default = "BP"
+  default     = "BP"
   validation {
     condition     = length(var.app) <= 6
     error_message = "The app name must be less than or equal to 6 characters."
@@ -396,36 +396,126 @@ variable "random_alphanumeric_len" {
 variable "special" {
   description = "Include special characters like !@#$%&*()-_=+[]{}<>:? in the generated name."
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "upper" {
   description = "Include uppercase characters in the generated name."
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "number" {
   description = "Include numbers in the generated name."
   type        = bool
-  default = true
+  default     = true
 }
 
 variable "gen_no_of_names" {
   description = "Number of names to generate."
   type        = number
-  default = 1
+  default     = 1
 }
 
 variable "team" {
   description = "The email address of the team who owns the application, ex:digitalops@gehealthcare.com"
   type        = string
-  default = "infra"
+  default     = "infra"
 }
 
 variable "program" {
   description = "Name of the Program, For ex: OT, BP etc."
   type        = string
-  default = "ot"
+  default     = "ot"
 }
+
+########################ALB#################
+
+variable "create_sg" {
+  type    = bool
+  default = true
+}
+
+variable "existing_sg_id" {
+  type    = string
+  default = ""
+}
+
+variable "alb_internal" {
+  type    = bool
+  default = false
+}
+
+variable "alb_certificate_arn" {
+  type    = string
+  default = ""
+}
+
+variable "enable_deletion_protection" {
+  type    = bool
+  default = false
+}
+
+# variable "access_logs" {
+#   type = object({
+#     enabled = bool
+#     bucket  = string
+#     prefix  = string
+#   })
+#   default = {
+#     enabled = false
+#     bucket  = ""
+#     prefix  = ""
+#   }
+# }
+
+variable "security_group_ingress_rules" {
+  description = "Ingress rules for ALB SG"
+  type = map(object({
+    description  = string
+    from_port    = number
+    to_port      = number
+    protocol     = string
+    cidr         = list(string)
+    ipv6_cidr    = list(string)
+    source_SG_ID = string
+  }))
+  default = {}
+}
+
+variable "security_group_egress_rules" {
+  description = "Egress rules for ALB SG"
+  type = map(object({
+    description  = string
+    from_port    = number
+    to_port      = number
+    protocol     = string
+    cidr         = list(string)
+    ipv6_cidr    = list(string)
+    source_SG_ID = string
+  }))
+  default = {}
+}
+
+variable "provisioner" {
+  type    = string
+  default = "terraform"
+}
+
+variable "create_alb" {
+  description = "Whether to create a new Security Group"
+  type        = bool
+  default     = true
+}
+
+
+variable "access_logs" {
+  description = "Configuration for ALB access logs"
+  type = object({
+    enabled = bool
+    bucket  = string
+    prefix  = string
+  })
+}
+
 

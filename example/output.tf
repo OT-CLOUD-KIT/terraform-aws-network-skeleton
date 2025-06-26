@@ -157,3 +157,35 @@ output "endpoint_sg_egress_rules" {
   description = "List of egress rules for the endpoint security group"
   value       = var.enable_endpoint_sg ? module.network.endpoint_security_group_rules.egress : null
 }
+
+
+
+
+###################
+output "alb_dns_name" {
+  value = module.network.alb_dns_name
+}
+
+output "alb_arn" {
+  value = module.network.alb_arn
+}
+
+output "alb_zone_id" {
+  value = module.network.alb_zone_id
+}
+
+output "alb_http_listener_arn" {
+  value = module.network.alb_http_listener_arn
+}
+
+output "alb_https_listener_arn" {
+  value = module.network.alb_https_listener_arn
+}
+
+output "alb_security_group_id" {
+  value = module.network.alb_security_group_id
+}
+
+output "alb_security_group_arn" {
+  value = module.network.alb_security_group_arn
+}

@@ -339,3 +339,121 @@ resource "aws_vpc_endpoint" "nlb" {
     aws_security_group.endpoint_sg[0]
   ]
 }
+
+
+
+
+
+
+###############Public ALB #####################3
+
+
+
+resource "aws_security_group" "alb_sg" {
+  count  = var.create_sg ? 1 : 0
+  name   = "${local.base_name}-alb-sg"
+  vpc_id = aws_vpc.vpc.id
+
+  tags = merge(
+    {
+      "Name"        = "${local.base_name}-alb-sg"
+      "provisioner" = var.provisioner
+    },
+    local.common_tags,
+  )
+}
+
+resource "aws_security_group_rule" "ingress_rule" {
+  type                     = "ingress"
+  for_each                 = local.security_group_ingress_rules
+  description              = each.value.description
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  cidr_blocks              = each.value.source_SG_ID == "" ? each.value.cidr : null
+  source_security_group_id = each.value.source_SG_ID != "" ? each.value.source_SG_ID : null
+  ipv6_cidr_blocks         = each.value.source_SG_ID == "" ? each.value.ipv6_cidr : null
+security_group_id = aws_security_group.alb_sg[0].id
+}
+
+resource "aws_security_group_rule" "egress_rule" {
+  type                     = "egress"
+  for_each                 = local.security_group_egress_rules
+  description              = each.value.description
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  cidr_blocks              = each.value.source_SG_ID == "" ? each.value.cidr : null
+  source_security_group_id = each.value.source_SG_ID != "" ? each.value.source_SG_ID : null
+  ipv6_cidr_blocks         = each.value.source_SG_ID == "" ? each.value.ipv6_cidr : null
+security_group_id = aws_security_group.alb_sg[0].id
+}
+
+
+resource "aws_lb" "alb" {
+  count  = var.create_alb ? 1 : 0
+
+  name                        = "${local.base_name}-alb"
+  internal                    = var.internal
+  load_balancer_type          = "application"
+  subnets = var.internal ? aws_subnet.private_subnet[*].id : aws_subnet.public_subnet[*].id
+    security_groups             = [var.create_sg ? aws_security_group.alb_sg[0].id : var.existing_sg_id]
+  enable_deletion_protection = var.enable_deletion_protection
+
+  dynamic "access_logs" {
+    for_each = var.access_logs.enabled && var.access_logs.bucket != null && var.access_logs.prefix != null ? [1] : []
+    content {
+      bucket  = var.access_logs.bucket
+      prefix  = var.access_logs.prefix
+      enabled = true
+    }
+  }
+
+  tags = merge(
+    {
+      Name = "${local.base_name}-alb"
+    },
+    local.common_tags
+  )
+}
+
+
+
+resource "aws_lb_listener" "alb_http_listener" {
+load_balancer_arn = aws_lb.alb[0].arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "alb_https_listener" {
+count = trim(var.alb_certificate_arn, " ") == "" ? 0 : 1
+load_balancer_arn = aws_lb.alb[0].arn
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = var.alb_certificate_arn
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Fixed response content"
+      status_code  = "200"
+    }
+
+
+  }
+}
+
+
+
