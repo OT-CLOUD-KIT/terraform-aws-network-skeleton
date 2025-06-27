@@ -482,3 +482,28 @@ variable "access_logs" {
 }
 
 
+
+#####NLB
+
+variable "create_nlb" {
+  description = "Whether to create the NLB"
+  type        = bool
+  default     = false
+}
+
+variable "is_internal" {
+  description = "Whether the NLB is internal"
+  type        = bool
+  default     = false
+}
+
+variable "nlb_sg_id" {
+  type    = string
+  default = ""
+}
+
+variable "enable_public_web_security_group_resource" {
+  type        = bool
+  description = "This variable is to create Web Security Group"
+  default     = true
+}

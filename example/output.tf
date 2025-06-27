@@ -193,3 +193,14 @@ output "alb_security_group_id" {
 output "alb_security_group_arn" {
   value = module.network.alb_security_group_arn
 }
+
+
+output "web_sg_id" {
+  value = var.enable_public_web_security_group_resource ? module.nlb_security_group[0].sg_id : null
+}
+
+
+output "network_nlb_arn" {
+  value       = module.network.nlb_arn
+  description = "NLB ARN from the network module"
+}

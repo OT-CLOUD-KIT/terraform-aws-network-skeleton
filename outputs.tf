@@ -198,3 +198,14 @@ output "alb_security_group_arn" {
   value       = var.create_sg ? aws_security_group.alb_sg[0].arn : null
   description = "The security group ARN of the ALB"
 }
+
+
+############ NLB #######################
+
+
+
+output "nlb_arn" {
+  value       = var.create_alb ? one(aws_lb.nlb[*].arn) : null
+  description = "The ARN of the ALB"
+}
+

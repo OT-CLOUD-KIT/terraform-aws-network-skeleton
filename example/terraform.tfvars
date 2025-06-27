@@ -162,3 +162,9 @@ security_group_egress_rules = {
 }
 
 provisioner = "terraform"
+
+
+create_nlb   = true
+is_internal  = false
+nlb_sg_name = "dev_nlg_sg"
+enable_public_web_security_group_resource = true

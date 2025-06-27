@@ -553,4 +553,24 @@ load_balancer_arn = aws_lb.alb[0].arn
 }
 
 
+###########################NLB ####################################33
+
+
+resource "aws_lb" "nlb" {
+  count              = var.create_nlb ? 1 : 0
+  name                   = "${local.base_name}-nlb"
+  internal           = var.is_internal
+  load_balancer_type = "network"
+  subnets = var.is_internal ? aws_subnet.private_subnet[*].id : aws_subnet.public_subnet[*].id
+  enable_deletion_protection = var.enable_deletion_protection
+  security_groups = var.nlb_sg_id != "" ? [var.nlb_sg_id] : null
+
+  tags = merge(
+    {
+      Name = "${local.base_name}-nlb"
+    },
+    local.common_tags
+  )
+}
+
 
