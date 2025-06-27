@@ -20,7 +20,7 @@ module "standard_tags" {
 
 
 module "network" {
-  source = "../"
+  source = "https://github.com/OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
 
   region                               = var.region
   cidr_block                           = var.cidr_block
