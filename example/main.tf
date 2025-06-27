@@ -20,7 +20,7 @@ module "standard_tags" {
 
 
 module "network" {
-  source = "../"
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
 
   region                               = var.region
   cidr_block                           = var.cidr_block
@@ -72,7 +72,6 @@ module "network" {
   enable_deletion_protection = var.enable_deletion_protection
   provisioner                = var.provisioner
   access_logs = var.access_logs
-  # logs_bucket = ""
 
 
 }
