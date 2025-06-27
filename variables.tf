@@ -452,10 +452,10 @@ variable "enable_logging" {
   description = "Enable ALB access logs"
 }
 
-# variable "logs_bucket" {
-#   type        = string
-#   description = "S3 bucket for ALB access logs"
-# }
+variable "logs_bucket" {
+  type        = string
+  description = "S3 bucket for ALB access logs"
+}
 
 
 variable "provisioner" {

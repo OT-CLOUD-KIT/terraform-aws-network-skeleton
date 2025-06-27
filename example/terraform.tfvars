@@ -12,7 +12,7 @@ route53_zone = "non-prod.internal"
 
 
 azs              = ["us-east-1a", "us-east-1b"]
-public_subnets   = ["10.0.1.0/24","10.0.2.0/24"]
+public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]
 private_subnets  = ["10.0.12.0/24", "10.0.13.0/24"]
 database_subnets = ["10.0.14.0/24"]
 

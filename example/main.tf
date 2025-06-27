@@ -64,15 +64,14 @@ module "network" {
   nlb_endpoint_type                    = var.nlb_endpoint_type
   nlb_private_dns_enabled              = var.nlb_private_dns_enabled
   database_ports                       = var.database_ports
-
-  create_alb         = var.create_alb
-  create_sg          = var.create_sg
-  existing_sg_id     = var.existing_sg_id
-  alb_certificate_arn = var.alb_certificate_arn
-  enable_deletion_protection = var.enable_deletion_protection
-  provisioner                = var.provisioner
-  access_logs = var.access_logs
-
+  create_alb                           = var.create_alb
+  create_sg                            = var.create_sg
+  existing_sg_id                       = var.existing_sg_id
+  alb_certificate_arn                  = var.alb_certificate_arn
+  enable_deletion_protection           = var.enable_deletion_protection
+  provisioner                          = var.provisioner
+  access_logs                          = var.access_logs
+  logs_bucket                          = ""
 
 }
 
