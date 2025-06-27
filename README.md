@@ -87,6 +87,18 @@ module "network" {
   service_name_nlb         = "com.amazonaws.us-east-1.elasticloadbalancing"
   nlb_endpoint_type        = "Interface"
   nlb_private_dns_enabled  = true
+
+  # For ALB
+  create_alb                 = true
+  create_sg                  = true
+  existing_sg_id             = null                        # Leave null to create new SG
+  alb_certificate_arn        = ""  # Replace with your ACM ARN
+  enable_deletion_protection = false                       # Change to true if needed
+  access_logs                = false                       # Enable if using logs
+  create_nlb                 = true
+  is_internal                = false                       # true if internal NLB
+  nlb_sg_id                  = module.nlb_security_group[0].sg_id
+
 }
 
 
@@ -117,6 +129,9 @@ module "network" {
 | [aws_subnet.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet)                                                      | resource    |
 | [aws_vpc.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc)                                                                      | resource    |
 | [aws_caller_identity.current_account](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity)                               | data source |
+|[aws_lb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) |resource |
+|[aws_lb_listener](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) |resource |
+
 
 ## Inputs
 
@@ -141,8 +156,10 @@ module "network" {
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone)                                                                               | Name of the private route53 hosted zone                                  | `string`                                                                                                           | `"non-prod.internal"` |    no    |
 | <a name="input_tags"></a> [tags](#input\_tags)                                                                                                         | A map of tags to add to all resources                                    | `map(string)`                                                                                                      | `{}`                  |    no    |
 | <a name="input_vpc_tags"></a> [vpc\_tags](#input\_vpc\_tags)                                                                                           | Additional tags for the VPC                                              | `map(string)`                                                                                                      | `{}`                  |    no    |
+ 
+## Output
 
-| Name                                                                                                                           | Description                                                     |
+ |      Name                                                                                                                           | Description                                                     |
 |--------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id)                                                                       | The ID of the VPC                                               |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block)                                             | The CIDR block of the VPC                                       |
