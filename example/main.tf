@@ -63,7 +63,6 @@ module "network" {
   service_name_nlb                     = var.service_name_nlb
   nlb_endpoint_type                    = var.nlb_endpoint_type
   nlb_private_dns_enabled              = var.nlb_private_dns_enabled
-  database_ports                       = var.database_ports
   create_alb                           = var.create_alb
   create_sg                            = var.create_sg
   existing_sg_id                       = var.existing_sg_id
