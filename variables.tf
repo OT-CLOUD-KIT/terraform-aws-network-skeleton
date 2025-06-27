@@ -172,68 +172,35 @@ variable "create_private_nacl" {
 
 }
 
-variable "public_nacl_rules" {
-  description = "List of NACL rules for public subnets"
-  type = list(object({
-    rule_number    = number
-    egress         = bool
-    protocol       = string
-    rule_action    = string
-    cidr_block     = string
-    from_port      = number
-    to_port        = number
-  }))
-  default = [{
-    rule_number = 100
-    egress      = true
-    protocol    = "tcp"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 80
-    to_port     = 80
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
-  }]
+
+
+variable "public_ports" {
+  description = "List of ports to allow in the public NACL"
+  type        = list(number)
+  default     = [80, 443, 5000]
 }
 
-variable "private_nacl_rules" {
-  description = "List of NACL rules for private subnets"
-  type = list(object({
-    rule_number    = number
-    egress         = bool
-    protocol       = string
-    rule_action    = string
-    cidr_block     = string
-    from_port      = number
-    to_port        = number
-  }))
-  default = [{
-    rule_number = 100
-    egress      = true
-    protocol    = "tcp"
-    rule_action = "allow"
-    cidr_block  = "10.0.0.0/8"
-    from_port   = 443
-    to_port     = 443
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
-  }]
+
+
+
+variable "private_ports" {
+  description = "List of ports to allow in the private NACL"
+  type        = list(number)
+  default     = [5000, 8080]
 }
 
+
+variable "create_database_nacl" {
+  description = "Whether to create a NACL for database subnet"
+  type        = bool
+  default     = true
+}
+
+variable "database_ports" {
+  description = "List of DB ports to allow (e.g., 5432, 3306)"
+  type        = list(number)
+  default     = [5432] # PostgreSQL by default
+}
 
 ################################### Naming convention variables #########################################
 
@@ -485,10 +452,10 @@ variable "enable_logging" {
   description = "Enable ALB access logs"
 }
 
-variable "logs_bucket" {
-  type        = string
-  description = "S3 bucket for ALB access logs"
-}
+# variable "logs_bucket" {
+#   type        = string
+#   description = "S3 bucket for ALB access logs"
+# }
 
 
 variable "provisioner" {

@@ -105,6 +105,9 @@ output "private_nacl_id" {
   value       = length(aws_network_acl.private) > 0 ? aws_network_acl.private[0].id : null
 }
 
+output "database_nacl_id" {
+  value = length(aws_network_acl.database) > 0 ? aws_network_acl.database : null
+}
 # Outputs for VPC Endpoints
 output "s3_endpoint" {
   description = "Details of the S3 VPC endpoint"

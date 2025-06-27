@@ -101,6 +101,10 @@ output "private_nacl_id" {
   value = module.network.private_nacl_id
 }
 
+output "database_nacl_id" {
+  value = module.network.database_nacl_id
+}
+
 
 
 output "s3_endpoint_id" {

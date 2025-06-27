@@ -41,49 +41,10 @@ flow_logs_enabled = false
 
 ################ NACL #################
 
-public_nacl_rules = [
-  {
-    rule_number = 100
-    egress      = true
-    protocol    = "tcp"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 80
-    to_port     = 80
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
-  }
-]
 
-private_nacl_rules = [
-  {
-    rule_number = 100
-    egress      = true
-    protocol    = "tcp"
-    rule_action = "allow"
-    cidr_block  = "10.0.0.0/8"
-    from_port   = 443
-    to_port     = 443
-  },
-  {
-    rule_number = 200
-    egress      = true
-    protocol    = "-1"
-    rule_action = "allow"
-    cidr_block  = "0.0.0.0/0"
-    from_port   = 0
-    to_port     = 0
-  }
-]
-
-
+public_ports   = [80, 443]
+private_ports  = [5000, 8080, 5432, 3306]
+database_ports = [5432, 3306]
 
 #################### VPC endpoint #####################
 

@@ -215,6 +215,39 @@ resource "aws_network_acl" "public" {
   )
 }
 
+
+resource "aws_network_acl_rule" "public_ingress" {
+  for_each       = var.create_public_nacl ? local.public_port_rule_numbers : {}
+  network_acl_id = aws_network_acl.public[0].id
+  rule_number = each.value.rule
+  egress         = false
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = each.key
+  to_port        = each.key
+}
+
+resource "aws_network_acl_rule" "public_egress" {
+  for_each       = var.create_public_nacl ? local.public_port_rule_numbers : {}
+  network_acl_id = aws_network_acl.public[0].id
+  rule_number = each.value.rule
+  egress         = true
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = each.key
+  to_port        = each.key
+}
+
+resource "aws_network_acl_association" "public_assoc" {
+  count          = var.create_nacl && var.create_public_subnets ? length(aws_subnet.public_subnet) : 0
+  subnet_id      = aws_subnet.public_subnet[count.index].id
+  network_acl_id = aws_network_acl.public[0].id
+}
+
+#####################Private NACL ##########################3
+
 resource "aws_network_acl" "private" {
   count = var.create_private_nacl ? 1 : 0
   vpc_id = aws_vpc.vpc.id
@@ -226,16 +259,80 @@ resource "aws_network_acl" "private" {
   )
 }
 
-resource "aws_network_acl_association" "public_assoc" {
-  count          = var.create_nacl && var.create_public_subnets && length(aws_subnet.public_subnet) > 0 ? length(aws_subnet.public_subnet) : 0
-  subnet_id      = aws_subnet.public_subnet[count.index].id
-  network_acl_id = aws_network_acl.public[0].id
+
+resource "aws_network_acl_rule" "private_ingress" {
+  for_each       = local.private_ingress_rules
+
+  network_acl_id = aws_network_acl.private[0].id
+  rule_number    = each.value.rule
+  egress         = false
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = each.value.cidr_block
+  from_port      = each.value.port
+  to_port        = each.value.port
+}
+
+resource "aws_network_acl_rule" "private_egress" {
+ for_each       = local.private_egress_rules
+
+  network_acl_id = aws_network_acl.private[0].id
+  rule_number    = each.value.rule
+  egress         = true
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = each.value.cidr_block
+  from_port      = each.value.port
+  to_port        = each.value.port
 }
 
 resource "aws_network_acl_association" "private_assoc" {
- count = var.create_nacl && var.create_private_subnets ? length(aws_subnet.private_subnet) : 0
- subnet_id      = aws_subnet.private_subnet[count.index].id
+  count          = var.create_nacl && var.create_private_subnets ? length(aws_subnet.private_subnet) : 0
+  subnet_id      = aws_subnet.private_subnet[count.index].id
   network_acl_id = aws_network_acl.private[0].id
+}
+
+
+######################## database nacl ################################
+resource "aws_network_acl" "database" {
+  count   = var.create_database_nacl ? 1 : 0
+  vpc_id  = aws_vpc.vpc.id
+  tags    = merge({
+    Name = "${local.base_name}-database-nacl"
+  }, local.common_tags)
+}
+
+resource "aws_network_acl_rule" "db_ingress" {
+  for_each       = local.db_ingress_rules
+
+  network_acl_id = aws_network_acl.database[0].id
+  rule_number    = each.value.rule
+  egress         = false
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = each.value.cidr_block
+  from_port      = each.value.port
+  to_port        = each.value.port
+}
+
+resource "aws_network_acl_rule" "db_egress" {
+  for_each       = local.db_egress_rules
+
+  network_acl_id = aws_network_acl.database[0].id
+  rule_number    = each.value.rule
+  egress         = true
+  protocol       = "6"
+  rule_action    = "deny"
+  cidr_block     = each.value.cidr_block
+  from_port      = each.value.port
+  to_port        = each.value.port
+}
+
+
+resource "aws_network_acl_association" "db_assoc" {
+  count          = var.create_database_nacl ? length(aws_subnet.database_subnet) : 0
+  subnet_id      = aws_subnet.database_subnet[count.index].id
+  network_acl_id = aws_network_acl.database[0].id
 }
 
 
