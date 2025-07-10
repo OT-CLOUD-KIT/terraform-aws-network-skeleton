@@ -24,37 +24,39 @@ output "default_route_table_id" {
 }
 
 output "igw_id" {
+  value = length(aws_internet_gateway.igw) > 0 ? aws_internet_gateway.igw[0].id : null
   description = "The ID of the Internet Gateway"
-  value       = aws_internet_gateway.igw.id
 }
+
 
 output "public_route_table_id" {
+  value = length(aws_route_table.public_route_table) > 0 ? aws_route_table.public_route_table[0].id : null
   description = "The ID of the public route table"
-  value       = aws_route_table.public_route_table.id
 }
 
-output "public_subnets" {
+
+output "public_subnets_ids" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.public_subnet[*].id
 }
 
 output "public_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of public subnets"
+  description = "List of CIDR blocks of public subnets"
   value       = compact(aws_subnet.public_subnet[*].cidr_block)
 }
 
 output "route53_zone_id" {
-  description = "Zone id for the vpc route53"
-  value       = aws_route53_zone.vpc_route53.zone_id
+  description = "Zone ID for the VPC Route53"
+  value       = aws_route53_zone.vpc_route53[*].zone_id  
 }
 
-output "private_subnets" {
+output "private_subnets_ids" {
   description = "List of IDs of private subnets"
   value       = aws_subnet.private_subnet[*].id
 }
 
 output "private_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of private subnets"
+  description = "List of CIDR blocks of private subnets"
   value       = compact(aws_subnet.private_subnet[*].cidr_block)
 }
 
@@ -64,28 +66,23 @@ output "private_route_table_id" {
 }
 
 output "nat_gateway_ips" {
-  description = "List of nat gateway IPs"
+  description = "List of NAT Gateway IPs"
   value       = aws_eip.nat[*].public_ip
 }
 
 output "nat_gateway_id" {
-  description = "List of IDs of nat gateway"
+  description = "List of IDs of NAT Gateways"
   value       = aws_nat_gateway.nat_gateway[*].id
 }
 
-output "database_subnets" {
+output "database_subnets_ids" {
   description = "List of IDs of database subnets"
   value       = aws_subnet.database_subnet[*].id
 }
 
 output "database_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of database subnets"
+  description = "List of CIDR blocks of database subnets"
   value       = compact(aws_subnet.database_subnet[*].cidr_block)
-}
-
-output "additional_private_routes" {
-  description = "List of additional private routes"
-  value       = local.additional_routes
 }
 
 output "flow_logs_bucket_arn" {
@@ -97,3 +94,118 @@ output "vpc_flow_log_arn" {
   description = "The ARN of the Flow Log"
   value       = aws_flow_log.vpc_flow_log[*].arn
 }
+
+output "public_nacl_id" {
+  description = "The ID of the public Network ACL"
+  value       = length(aws_network_acl.public) > 0 ? aws_network_acl.public[0].id : null
+}
+
+output "private_nacl_id" {
+  description = "The ID of the private Network ACL"
+  value       = length(aws_network_acl.private) > 0 ? aws_network_acl.private[0].id : null
+}
+
+output "database_nacl_id" {
+  value = length(aws_network_acl.database) > 0 ? aws_network_acl.database : null
+}
+# Outputs for VPC Endpoints
+output "s3_endpoint" {
+  description = "Details of the S3 VPC endpoint"
+  value = var.enable_s3_endpoint ? {
+    id              = aws_vpc_endpoint.s3[0].id
+    service_name    = aws_vpc_endpoint.s3[0].service_name
+    dns_entries     = aws_vpc_endpoint.s3[0].dns_entry
+    route_table_ids = aws_vpc_endpoint.s3[0].route_table_ids
+  } : null
+}
+
+output "ec2_endpoint" {
+  description = "Details of the EC2 VPC endpoint"
+  value = var.enable_ec2_endpoint ? {
+    id              = aws_vpc_endpoint.ec2[0].id
+    service_name    = aws_vpc_endpoint.ec2[0].service_name
+    dns_entries     = aws_vpc_endpoint.ec2[0].dns_entry
+    subnet_ids      = aws_vpc_endpoint.ec2[0].subnet_ids
+    security_groups = aws_vpc_endpoint.ec2[0].security_group_ids
+    private_dns     = aws_vpc_endpoint.ec2[0].private_dns_enabled
+  } : null
+}
+
+output "nlb_endpoint" {
+  description = "Details of the NLB VPC endpoint"
+  value = var.enable_nlb_endpoint ? {
+    id              = aws_vpc_endpoint.nlb[0].id
+    service_name    = aws_vpc_endpoint.nlb[0].service_name
+    dns_entries     = aws_vpc_endpoint.nlb[0].dns_entry
+    subnet_ids      = aws_vpc_endpoint.nlb[0].subnet_ids
+    security_groups = aws_vpc_endpoint.nlb[0].security_group_ids
+    private_dns     = aws_vpc_endpoint.nlb[0].private_dns_enabled
+  } : null
+}
+
+output "endpoint_security_group_rules" {
+  description = "Ingress and egress rules of the endpoint security group"
+  value = var.enable_endpoint_sg ? {
+    ingress = aws_security_group.endpoint_sg[0].ingress
+    egress  = aws_security_group.endpoint_sg[0].egress
+  } : null
+}
+
+output "endpoint_security_group" {
+  description = "Details of the endpoint security group"
+  value = var.enable_endpoint_sg ? {
+    id          = aws_security_group.endpoint_sg[0].id
+    name        = aws_security_group.endpoint_sg[0].name
+    description = aws_security_group.endpoint_sg[0].description
+    vpc_id      = aws_security_group.endpoint_sg[0].vpc_id
+  } : null
+}
+
+
+###############ALB ##############3
+
+output "alb_arn" {
+  value       = var.create_alb ? one(aws_lb.alb[*].arn) : null
+  description = "The ARN of the ALB"
+}
+
+output "alb_dns_name" {
+  value       = var.create_alb ? one(aws_lb.alb[*].dns_name) : null
+  description = "The DNS name of the ALB"
+}
+
+output "alb_zone_id" {
+  value       = var.create_alb ? one(aws_lb.alb[*].zone_id) : null
+  description = "The zone ID of the ALB"
+}
+
+output "alb_http_listener_arn" {
+  value       = aws_lb_listener.alb_http_listener.arn
+  description = "The ARN of the ALB HTTP listener"
+}
+
+output "alb_https_listener_arn" {
+  value       = try(aws_lb_listener.alb_https_listener[0].arn, null)
+  description = "The ARN of the ALB HTTPS listener (if present)"
+}
+
+output "alb_security_group_id" {
+  value       = var.create_sg ? aws_security_group.alb_sg[0].id : var.existing_sg_id
+  description = "The security group ID of the ALB"
+}
+
+output "alb_security_group_arn" {
+  value       = var.create_sg ? aws_security_group.alb_sg[0].arn : null
+  description = "The security group ARN of the ALB"
+}
+
+
+############ NLB #######################
+
+
+
+output "nlb_arn" {
+  value       = var.create_alb ? one(aws_lb.nlb[*].arn) : null
+  description = "The ARN of the ALB"
+}
+

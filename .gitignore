@@ -1,7 +1,1 @@
 .terraform
-*.tfstate*
-*provider.tf
-*plan.out
-/examples/
-*.tfvars
-.terraform.lock.hcl
