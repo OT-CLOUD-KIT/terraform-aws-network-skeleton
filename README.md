@@ -4,7 +4,7 @@ A terraform module which creates network skeleton on AWS with best practices in 
 
 ## Architecture
 
-![network drawio](https://github.com/user-attachments/assets/0591cbd0-865d-4ff2-a569-0ebc8d4dde7d)
+![Network_1 drawio](https://github.com/user-attachments/assets/5b5019a4-d2b2-4801-8add-451254f1db8d)
 
 
 ## Providers

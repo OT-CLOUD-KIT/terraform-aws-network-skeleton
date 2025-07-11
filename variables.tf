@@ -174,20 +174,20 @@ variable "create_private_nacl" {
 
 
 
-variable "public_ports" {
-  description = "List of ports to allow in the public NACL"
-  type        = list(number)
-  default     = [80, 443, 5000]
-}
+# variable "public_ports" {
+#   description = "List of ports to allow in the public NACL"
+#   type        = list(number)
+#   default     = [80, 443, 5000]
+# }
 
 
 
 
-variable "private_ports" {
-  description = "List of ports to allow in the private NACL"
-  type        = list(number)
-  default     = [5000, 8080]
-}
+# variable "private_ports" {
+#   description = "List of ports to allow in the private NACL"
+#   type        = list(number)
+#   default     = [5000, 8080]
+# }
 
 
 variable "create_database_nacl" {
@@ -196,10 +196,71 @@ variable "create_database_nacl" {
   default     = true
 }
 
-variable "database_ports" {
-  description = "List of DB ports to allow (e.g., 5432, 3306)"
-  type        = list(number)
-  default     = [5432] # PostgreSQL by default
+# variable "database_ports" {
+#   description = "List of DB ports to allow (e.g., 5432, 3306)"
+#   type        = list(number)
+#   default     = [5432] # PostgreSQL by default
+# }
+
+
+variable "public_ingress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "public_egress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "private_ingress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "private_egress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "db_ingress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "db_egress_rules" {
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
 }
 
 ################################### Naming convention variables #########################################
@@ -506,4 +567,10 @@ variable "enable_public_web_security_group_resource" {
   type        = bool
   description = "This variable is to create Web Security Group"
   default     = true
+}
+
+
+variable "cluster_name" {
+  description = "Name of the EKS cluster for subnet tagging"
+  type        = string
 }

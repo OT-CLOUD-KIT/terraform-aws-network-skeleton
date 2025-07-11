@@ -20,7 +20,7 @@ module "standard_tags" {
 
 
 module "network" {
-  source = "https://github.com/OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
 
   region                               = var.region
   cidr_block                           = var.cidr_block
@@ -37,6 +37,7 @@ module "network" {
   create_igw                           = var.create_igw
   create_nat_gateway                   = var.create_nat_gateway
   create_public_nacl                   = var.create_public_nacl
+  create_database_nacl                 = var.create_database_nacl
   create_private_nacl                  = var.create_private_nacl
   create_private_route_table           = var.create_private_route_table
   create_public_route_table            = var.create_public_route_table
@@ -74,6 +75,13 @@ module "network" {
 create_nlb =  var.create_nlb
 is_internal = var.is_internal
 nlb_sg_id = module.nlb_security_group[0].sg_id
+  public_ingress_rules  = var.public_ingress_rules
+  public_egress_rules   = var.public_egress_rules
+  private_ingress_rules = var.private_ingress_rules
+  private_egress_rules  = var.private_egress_rules
+  db_ingress_rules      = var.db_ingress_rules
+  db_egress_rules       = var.db_egress_rules
+  cluster_name = var.cluster_name
 }
 
 

@@ -5,12 +5,14 @@ resource "aws_vpc" "vpc" {
   enable_dns_support                   = true
   instance_tenancy                     = var.instance_tenancy
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
-  tags = merge(
-    {
-      Name = "${local.base_name}-vpc"
-    },
-    local.common_tags
-  )
+ tags = merge(
+  {
+    Name = "${local.base_name}-vpc"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned" # Optional, helpful for visibility
+  },
+  local.common_tags
+)
+
 }
 
 # Private route53 zone creation (based on create_route53)
@@ -60,6 +62,7 @@ resource "aws_route" "default_public_route" {
   gateway_id              = aws_internet_gateway.igw[0].id
 }
 
+
 resource "aws_route_table_association" "public" {
   count          = var.create_public_route_table && var.create_public_subnets ? length(var.public_subnets) : 0
   subnet_id      = aws_subnet.public_subnet[count.index].id
@@ -82,12 +85,15 @@ resource "aws_subnet" "public_subnet" {
   availability_zone       = element(var.azs, count.index)
   cidr_block              = var.public_subnets[count.index]
   map_public_ip_on_launch = true
-  tags = merge(
-    {
-      Name = "${local.base_name}-public-${count.index}"
-    },
-    local.common_tags
-  )
+ tags = merge(
+  {
+    Name                                      = "${local.base_name}-public-${count.index}"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/role/elb"                   = "1"
+  },
+  local.common_tags
+)
+
 }
 
 # Private Subnets creation (based on create_private_subnets)
@@ -98,11 +104,14 @@ resource "aws_subnet" "private_subnet" {
   cidr_block              = var.private_subnets[count.index]
   map_public_ip_on_launch = false
   tags = merge(
-    {
-      Name = "${local.base_name}-application-${count.index}"
-    },
-    local.common_tags
-  )
+  {
+    Name                                      = "${local.base_name}-application-${count.index}"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/role/internal-elb"          = "1"
+  },
+  local.common_tags
+)
+
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -176,9 +185,19 @@ resource "aws_subnet" "database_subnet" {
   tags = merge(
     {
       Name = "${local.base_name}-db--${count.index}"
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/role/internal-elb"          = "1"
     },
     local.common_tags
   )
+}
+
+# Route Table Association for Database Subnets (uses Private Route Table)
+resource "aws_route_table_association" "database" {
+  count = var.create_private_route_table && length(var.database_subnets) > 0 ? length(var.database_subnets) : 0
+
+  subnet_id      = aws_subnet.database_subnet[count.index].id
+  route_table_id = aws_route_table.private_route_table[0].id
 }
 
 # VPC Flow logs bucket creation
@@ -203,139 +222,102 @@ resource "aws_flow_log" "vpc_flow_log" {
   }
 }
 
-# NACL creation (based on create_nacl)
+
+
+# PUBLIC NACL
 resource "aws_network_acl" "public" {
-  count = var.create_public_nacl ? 1 : 0
+  count  = var.create_public_nacl ? 1 : 0
   vpc_id = aws_vpc.vpc.id
-  tags = merge(
-    {
-      Name = "${local.base_name}-public-nacl"
-    },
-    local.common_tags
-  )
+  tags   = merge({ Name = "${local.base_name}-public-nacl" }, local.common_tags)
 }
 
-
 resource "aws_network_acl_rule" "public_ingress" {
-  for_each       = var.create_public_nacl ? local.public_port_rule_numbers : {}
+  for_each       = var.create_public_nacl ? local.public_ingress_map : {}
   network_acl_id = aws_network_acl.public[0].id
-  rule_number = each.value.rule
+  rule_number    = each.value.rule
   egress         = false
   protocol       = "6"
   rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = each.key
-  to_port        = each.key
+  cidr_block     = each.value.cidr
+  from_port      = each.value.port
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
 
 resource "aws_network_acl_rule" "public_egress" {
-  for_each       = var.create_public_nacl ? local.public_port_rule_numbers : {}
+  for_each       = var.create_public_nacl ? local.public_egress_map : {}
   network_acl_id = aws_network_acl.public[0].id
-  rule_number = each.value.rule
+  rule_number    = each.value.rule
   egress         = true
   protocol       = "6"
   rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = each.key
-  to_port        = each.key
+  cidr_block     = each.value.cidr
+  from_port      = each.value.port
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
 
-resource "aws_network_acl_association" "public_assoc" {
-  count          = var.create_nacl && var.create_public_subnets ? length(aws_subnet.public_subnet) : 0
-  subnet_id      = aws_subnet.public_subnet[count.index].id
-  network_acl_id = aws_network_acl.public[0].id
-}
 
-#####################Private NACL ##########################3
-
+# PRIVATE NACL
 resource "aws_network_acl" "private" {
-  count = var.create_private_nacl ? 1 : 0
+  count  = var.create_private_nacl ? 1 : 0
   vpc_id = aws_vpc.vpc.id
-  tags = merge(
-    {
-      Name = "${local.base_name}-private-nacl"
-    },
-    local.common_tags
-  )
+  tags   = merge({ Name = "${local.base_name}-private-nacl" }, local.common_tags)
 }
-
 
 resource "aws_network_acl_rule" "private_ingress" {
-  for_each       = local.private_ingress_rules
-
+  for_each       = var.create_private_nacl ? local.private_ingress_map : {}
   network_acl_id = aws_network_acl.private[0].id
   rule_number    = each.value.rule
   egress         = false
   protocol       = "6"
   rule_action    = "allow"
-  cidr_block     = each.value.cidr_block
+  cidr_block     = each.value.cidr
   from_port      = each.value.port
-  to_port        = each.value.port
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
 
 resource "aws_network_acl_rule" "private_egress" {
- for_each       = local.private_egress_rules
-
+  for_each       = var.create_private_nacl ? local.private_egress_map : {}
   network_acl_id = aws_network_acl.private[0].id
   rule_number    = each.value.rule
   egress         = true
   protocol       = "6"
   rule_action    = "allow"
-  cidr_block     = each.value.cidr_block
+  cidr_block     = each.value.cidr
   from_port      = each.value.port
-  to_port        = each.value.port
-}
-
-resource "aws_network_acl_association" "private_assoc" {
-  count          = var.create_nacl && var.create_private_subnets ? length(aws_subnet.private_subnet) : 0
-  subnet_id      = aws_subnet.private_subnet[count.index].id
-  network_acl_id = aws_network_acl.private[0].id
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
 
 
-######################## database nacl ################################
+# DATABASE NACL
 resource "aws_network_acl" "database" {
-  count   = var.create_database_nacl ? 1 : 0
-  vpc_id  = aws_vpc.vpc.id
-  tags    = merge({
-    Name = "${local.base_name}-database-nacl"
-  }, local.common_tags)
+  count  = var.create_database_nacl ? 1 : 0
+  vpc_id = aws_vpc.vpc.id
+  tags   = merge({ Name = "${local.base_name}-database-nacl" }, local.common_tags)
 }
 
 resource "aws_network_acl_rule" "db_ingress" {
-  for_each       = local.db_ingress_rules
-
+  for_each       = var.create_database_nacl ? local.db_ingress_map : {}
   network_acl_id = aws_network_acl.database[0].id
   rule_number    = each.value.rule
   egress         = false
   protocol       = "6"
   rule_action    = "allow"
-  cidr_block     = each.value.cidr_block
+  cidr_block     = each.value.cidr
   from_port      = each.value.port
-  to_port        = each.value.port
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
 
 resource "aws_network_acl_rule" "db_egress" {
-  for_each       = local.db_egress_rules
-
+  for_each       = var.create_database_nacl ? local.db_egress_map : {}
   network_acl_id = aws_network_acl.database[0].id
   rule_number    = each.value.rule
   egress         = true
   protocol       = "6"
-  rule_action    = "deny"
-  cidr_block     = each.value.cidr_block
+  rule_action    = "allow"
+  cidr_block     = each.value.cidr
   from_port      = each.value.port
-  to_port        = each.value.port
+  to_port        = lookup(each.value, "to_port", each.value.port)
 }
-
-
-resource "aws_network_acl_association" "db_assoc" {
-  count          = var.create_database_nacl ? length(aws_subnet.database_subnet) : 0
-  subnet_id      = aws_subnet.database_subnet[count.index].id
-  network_acl_id = aws_network_acl.database[0].id
-}
-
-
 
 ###########################################################
 # vpc endpoint

@@ -157,22 +157,10 @@ variable "create_private_nacl" {
   default     = true
 }
 
-#
-variable "public_ports" {
-  description = "List of ports to allow in the public NACL"
-  type        = list(number)
-  default     = [80, 443, 5000]
-}
-
-variable "private_ports" {
-  description = "List of ports to allow in the private NACL"
-  type        = list(number)
-  default     = [5000, 8080]
-}
-
-variable "database_ports" {
-  description = "List of DB ports to allow (e.g., 5432, 3306)"
-  type        = list(number)
+variable "create_database_nacl" {
+  type = bool
+  default = true
+  
 }
 ######################## vpc endpoint variable ###################
 
@@ -486,4 +474,81 @@ variable "is_internal" {
   description = "Whether the NLB is internal"
   type        = bool
   default     = false
+}
+
+
+
+
+#################### NACL Rule Definitions ####################
+
+variable "public_ingress_rules" {
+  description = "List of public ingress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "public_egress_rules" {
+  description = "List of public egress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "private_ingress_rules" {
+  description = "List of private ingress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "private_egress_rules" {
+  description = "List of private egress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "db_ingress_rules" {
+  description = "List of database ingress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+variable "db_egress_rules" {
+  description = "List of database egress rules"
+  type = list(object({
+    port    = number
+    to_port = optional(number)
+    cidr    = string
+    rule    = number
+  }))
+  default = []
+}
+
+
+variable "cluster_name" {
+  type = string
+  default = "eks"
 }

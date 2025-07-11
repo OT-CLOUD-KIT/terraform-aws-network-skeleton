@@ -18,16 +18,17 @@ database_subnets = ["10.0.14.0/24"]
 
 # Flags for resource creation
 create_igw                 = true
-create_nat_gateway         = false
+create_nat_gateway         = true
 create_database_subnets    = false
 create_public_subnets      = true
 create_private_subnets     = true
 create_public_route_table  = true
 create_private_route_table = true
 create_nacl                = true
-create_route53             = false
+create_route53             = true
 create_public_nacl         = true
 create_private_nacl        = true
+create_database_nacl = true
 
 
 
@@ -39,12 +40,56 @@ additional_public_routes  = {}
 # Flow logs
 flow_logs_enabled = false
 
+
+
 ################ NACL #################
 
+public_ingress_rules = [
+  {port =1024, to_port= 65535, cidr= "0.0.0.0/0",rule =90 },
+  { port = 80,  to_port = 80,  cidr = "0.0.0.0/0", rule = 100 },
+  { port = 443, to_port = 443, cidr = "0.0.0.0/0", rule = 110 },
+  { port = 22,  to_port = 22,  cidr = "0.0.0.0/0", rule = 120 }
+]
 
-public_ports   = [80, 443]
-private_ports  = [5000, 8080, 5432, 3306]
-database_ports = [5432, 3306]
+public_egress_rules = [
+    {port =1024, to_port= 65535, cidr= "0.0.0.0/0",rule =90 },
+
+  { port = 80,  to_port = 80,  cidr = "0.0.0.0/0", rule = 101 },
+  { port = 443, to_port = 443, cidr = "0.0.0.0/0", rule = 111 },
+  { port = 22,  to_port = 22,  cidr = "0.0.0.0/0", rule = 121 }
+]
+
+private_ingress_rules = [
+    {port =1024, to_port= 65535, cidr= "0.0.0.0/0",rule =90 },
+  { port = 5000, to_port = 5000, cidr = "10.0.0.0/16", rule = 200 },
+  { port = 8080, to_port = 8080, cidr = "10.0.0.0/16", rule = 210 },
+  { port = 5432, to_port = 5432, cidr = "10.0.0.0/16", rule = 220 },
+  { port = 3306, to_port = 3306, cidr = "10.0.0.0/16", rule = 230 },
+  { port = 22,   to_port = 22,   cidr = "10.0.0.0/16", rule = 240 }
+]
+
+private_egress_rules = [
+    {port =1024, to_port= 65535, cidr= "0.0.0.0/0",rule =90 },
+
+  { port = 5000, to_port = 5000, cidr = "10.0.0.0/16", rule = 201 },
+  { port = 8080, to_port = 8080, cidr = "10.0.0.0/16", rule = 211 },
+  { port = 5432, to_port = 5432, cidr = "10.0.0.0/16", rule = 221 },
+  { port = 3306, to_port = 3306, cidr = "10.0.0.0/16", rule = 231 },
+  { port = 22,   to_port = 22,   cidr = "10.0.0.0/16", rule = 241 }
+]
+
+db_ingress_rules = [
+  { port = 5432, to_port = 5432, cidr = "10.0.1.0/24", rule = 300 },
+  { port = 3306, to_port = 3306, cidr = "10.0.1.0/24", rule = 310 },
+  { port = 22,   to_port = 22,   cidr = "10.0.1.0/24", rule = 320 }
+]
+
+db_egress_rules = [
+  { port = 5432, to_port = 5432, cidr = "10.0.1.0/24", rule = 301 },
+  { port = 3306, to_port = 3306, cidr = "10.0.1.0/24", rule = 311 },
+  { port = 22,   to_port = 22,   cidr = "10.0.1.0/24", rule = 321 }
+]
+
 
 #################### VPC endpoint #####################
 
