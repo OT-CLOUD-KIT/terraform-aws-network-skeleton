@@ -12,82 +12,7 @@ locals {
     "ManagedBy"    = "Terraform"
   }
 
-# public_port_rule_numbers = {
-#     for idx, port in var.public_ports :
-#     port => {
-#       rule  = 100 * (idx + 1)
-#       cidrs = ["0.0.0.0/0"]  # Public access
-#     }
-#   }
 
-#   private_ingress_rules = var.create_private_nacl ? {
-#     for pair in flatten([
-#       for port_index, port in var.private_ports : [
-#         for cidr_index, cidr in var.public_subnets : {
-#           key        = "${port}-${cidr}-ingress"
-#           rule       = (port_index + 1) * 100 + cidr_index * 10
-#           port       = port
-#           cidr_block = cidr
-#         }
-#       ]
-#     ]) : pair.key => {
-#       rule       = pair.rule
-#       port       = pair.port
-#       cidr_block = pair.cidr_block
-#     }
-#   } : {}
-
-#   private_egress_rules = var.create_private_nacl ? {
-#     for pair in flatten([
-#       for port_index, port in var.private_ports : [
-#         for cidr_index, cidr in var.database_subnets : {
-#           key        = "${port}-${cidr}-egress"
-#           rule       = (port_index + 1) * 100 + cidr_index * 10 + 1
-#           port       = port
-#           cidr_block = cidr
-#         }
-#       ]
-#     ]) : pair.key => {
-#       rule       = pair.rule
-#       port       = pair.port
-#       cidr_block = pair.cidr_block
-#     }
-#   } : {}
-
-#   db_egress_rules = var.create_database_nacl ? {
-#     for pair in flatten([
-#       for port_index, port in var.database_ports : [
-#         for cidr_index, cidr in var.database_subnets : {
-#           key        = "${port}-${cidr}-egress"
-#           rule       = (port_index + 1) * 100 + cidr_index * 10 + 1
-#           port       = port
-#           cidr_block = cidr
-#         }
-#       ]
-#     ]) : pair.key => {
-#       rule       = pair.rule
-#       port       = pair.port
-#       cidr_block = pair.cidr_block
-#     }
-#   } : {}
-
-#   # Optional: db_ingress_rules (if needed)
-#   db_ingress_rules = var.create_database_nacl ? {
-#     for pair in flatten([
-#       for port_index, port in var.database_ports : [
-#         for cidr_index, cidr in var.private_subnets : {
-#           key        = "${port}-${cidr}-ingress"
-#           rule       = (port_index + 1) * 100 + cidr_index * 10
-#           port       = port
-#           cidr_block = cidr
-#         }
-#       ]
-#     ]) : pair.key => {
-#       rule       = pair.rule
-#       port       = pair.port
-#       cidr_block = pair.cidr_block
-#     }
-#   } : {}
 
 public_ingress_map  = { for rule in var.public_ingress_rules  : "${rule.port}-${rule.cidr}" => rule }
   public_egress_map   = { for rule in var.public_egress_rules   : "${rule.port}-${rule.cidr}" => rule }
@@ -124,5 +49,4 @@ locals {
 }
 
 
-###############################NACL#######################3
 
