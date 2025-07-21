@@ -1,3 +1,5 @@
+
+
 module "naming" {
   source   = "git@github.com:OT-CLOUD-KIT/terraform-aws-naming.git?ref=dev"
   bu       = var.bu
@@ -6,6 +8,7 @@ module "naming" {
   tenant   = var.tenant
   resource = var.resource
 }
+
 
 module "standard_tags" {
   source = "git@github.com:OT-CLOUD-KIT/terraform-aws-standard-tagging.git?ref=dev"
@@ -19,103 +22,118 @@ module "standard_tags" {
 }
 
 
-module "network" {
-  source = "https://github.com/OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=Feature"
-
-  region                               = var.region
-  cidr_block                           = var.cidr_block
-  instance_tenancy                     = var.instance_tenancy
-  enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
-  azs                                  = var.azs
-  public_subnets                       = var.public_subnets
-  private_subnets                      = var.private_subnets
-  route53_zone                         = var.route53_zone
-  flow_logs_enabled                    = var.flow_logs_enabled
-  additional_public_routes             = var.additional_public_routes
-  additional_private_routes            = var.additional_private_routes
-  create_database_subnets              = var.create_database_subnets
-  create_igw                           = var.create_igw
-  create_nat_gateway                   = var.create_nat_gateway
-  create_public_nacl                   = var.create_public_nacl
-  create_private_nacl                  = var.create_private_nacl
-  create_private_route_table           = var.create_private_route_table
-  create_public_route_table            = var.create_public_route_table
-  create_private_subnets               = var.create_private_subnets
-  create_public_subnets                = var.create_public_subnets
-  create_route53                       = var.create_route53
-  create_nacl                          = var.create_nacl
-  database_subnets                     = var.database_subnets
-  bu                                   = var.bu
-  program                              = var.program
-  team                                 = var.team
-  app                                  = var.app
-  env                                  = var.env
-  enable_s3_endpoint                   = var.enable_s3_endpoint
-  enable_ec2_endpoint                  = var.enable_ec2_endpoint
-  enable_nlb_endpoint                  = var.enable_nlb_endpoint
-  enable_endpoint_sg                   = var.enable_endpoint_sg
-  endpoint_sg_rules                    = var.endpoint_sg_rules
-  service_name_s3                      = var.service_name_s3
-  s3_endpoint_type                     = var.s3_endpoint_type
-  service_name_ec2                     = var.service_name_ec2
-  ec2_endpoint_type                    = var.ec2_endpoint_type
-  ec2_private_dns_enabled              = var.ec2_private_dns_enabled
-  service_name_nlb                     = var.service_name_nlb
-  nlb_endpoint_type                    = var.nlb_endpoint_type
-  nlb_private_dns_enabled              = var.nlb_private_dns_enabled
-  create_alb                           = var.create_alb
-  create_sg                            = var.create_sg
-  existing_sg_id                       = var.existing_sg_id
-  alb_certificate_arn                  = var.alb_certificate_arn
-  enable_deletion_protection           = var.enable_deletion_protection
-  provisioner                          = var.provisioner
-  access_logs                          = var.access_logs
-  logs_bucket                          = ""
-create_nlb =  var.create_nlb
-is_internal = var.is_internal
-nlb_sg_id = module.nlb_security_group[0].sg_id
+module "alb_security_group" {
+  source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
+  name_sg     = "alb-sg"
+  vpc_id      = module.network.vpc_id
+  provisioner = var.provisioner
+  tags        = var.tags
+  ingress_rule = var.alb_ingress_rules
+  egress_rule  = var.alb_egress_rules
 }
-
-
 
 module "nlb_security_group" {
-  count               = var.enable_public_web_security_group_resource == true ? 1 : 0
-  source              = "OT-CLOUD-KIT/security-groups/aws"
-  version             = "1.0.0"
-  enable_whitelist_ip = true
-  name_sg             = var.nlb_sg_name
-  vpc_id              = module.network.vpc_id
+  source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
+  name_sg     = "nlb-sg"
+  vpc_id      = module.network.vpc_id
+  provisioner = var.provisioner
+  tags        = var.tags
+  ingress_rule = var.nlb_ingress_rules
+  egress_rule  = var.nlb_egress_rules
+}
 
-  ingress_rule = {
-    rules = {
-      rule_list = [
-        {
-          description  = "Rule for port 80"
-          from_port    = 80
-          to_port      = 80
-          protocol     = "tcp"
-          cidr         = ["0.0.0.0/0"]
-          source_SG_ID = []
-        },
-        {
-          description  = "Rule for port 443"
-          from_port    = 443
-          to_port      = 443
-          protocol     = "tcp"
-          cidr         = ["0.0.0.0/0"]
-          source_SG_ID = []
-        }
-      ]
-    }
-  }
-
+module "endpoint_security_group" {
+  source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
+  name_sg     = "endpoint-sg"
+  vpc_id      = module.network.vpc_id
+  provisioner = var.provisioner
+  tags        = var.tags
+  ingress_rule = var.endpoint_ingress_rules
+  egress_rule  = var.endpoint_egress_rules
 }
 
 
+module "network" {
+  source = "../"  
+  # VPC
+  vpc_cidr             = var.vpc_cidr
+  instance_tenancy     = var.instance_tenancy
+  enable_dns_support   = var.enable_dns_support
+  enable_dns_hostnames = var.enable_dns_hostnames
+  cluster_name         = var.cluster_name
+
+  # Subnets
+  subnet_names = var.subnet_names
+  subnet_cidrs = var.subnet_cidrs
+  subnet_azs   = var.subnet_azs
+  public_subnet_indexes = var.public_subnet_indexes
+
+  # Route tables
+  public_rt_cidr_block  = var.public_rt_cidr_block
+  private_rt_cidr_block = var.private_rt_cidr_block
+
+  # NAT Gateway
+  create_nat_gateway = var.create_nat_gateway
+
+  # NACL
+  create_nacl = var.create_nacl
+  nacl_names  = var.nacl_names
+  nacl_rules  = var.nacl_rules
+
+  # Flow Logs
+  flow_logs_enabled      = var.flow_logs_enabled
+  flow_logs_traffic_type = var.flow_logs_traffic_type
+  flow_logs_file_format  = var.flow_logs_file_format
+
+  # Route53
+  create_route53 = var.create_route53
+  route53_zone   = var.route53_zone
+
+  # Endpoints
+  enable_s3_endpoint         = var.enable_s3_endpoint
+  service_name_s3            = var.service_name_s3
+  s3_endpoint_type           = var.s3_endpoint_type
+
+  enable_ec2_endpoint        = var.enable_ec2_endpoint
+  service_name_ec2           = var.service_name_ec2
+  ec2_endpoint_type          = var.ec2_endpoint_type
+  ec2_private_dns_enabled    = var.ec2_private_dns_enabled
+
+  enable_nlb_endpoint        = var.enable_nlb_endpoint
+  service_name_nlb           = var.service_name_nlb
+  nlb_endpoint_type          = var.nlb_endpoint_type
+  nlb_private_dns_enabled    = var.nlb_private_dns_enabled
+  endpoint_sg_id             = module.endpoint_security_group.sg_id
+
+  # ALB
+  create_alb                 = var.create_alb
+  internal                   = var.internal
+  alb_sg_id                  = module.alb_security_group.sg_id
+  enable_deletion_protection = var.enable_deletion_protection
+  access_logs                = var.access_logs
+  alb_certificate_arn        = var.alb_certificate_arn
+
+  # NLB
+  create_nlb    = var.create_nlb
+  is_internal   = var.is_internal
+  nlb_sg_id     = module.nlb_security_group.sg_id
+
+  # Tags
+  bu      = var.bu
+  program = var.program
+  app     = var.app
+  env     = var.env
+  team    = var.team
+  region  = var.region
 
 
+  # Key Pair
+  create_key_pair       = var.create_key_pair
+  create_private_key    = var.create_private_key
+  key_pair_name         = var.key_pair_name
+  private_key_algorithm = var.private_key_algorithm
+  private_key_rsa_bits  = var.private_key_rsa_bits
+  public_key_path       = var.public_key_path
+  key_output_dir         = var.key_output_dir    
 
-
-
-
-
+}

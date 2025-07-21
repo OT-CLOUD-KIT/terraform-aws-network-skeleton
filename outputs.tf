@@ -1,6 +1,6 @@
 output "vpc_id" {
-  description = "The ID of the VPC"
   value       = aws_vpc.vpc.id
+  description = "ID of the OTMS VPC"
 }
 
 output "vpc_cidr_block" {
@@ -8,81 +8,11 @@ output "vpc_cidr_block" {
   value       = aws_vpc.vpc.cidr_block
 }
 
+
+
 output "default_security_group_id" {
   description = "The ID of the security group created by default on VPC creation"
   value       = aws_vpc.vpc.default_security_group_id
-}
-
-output "default_network_acl_id" {
-  description = "The ID of the default network ACL"
-  value       = aws_vpc.vpc.default_network_acl_id
-}
-
-output "default_route_table_id" {
-  description = "The ID of the default route table"
-  value       = aws_vpc.vpc.default_route_table_id
-}
-
-output "igw_id" {
-  value = length(aws_internet_gateway.igw) > 0 ? aws_internet_gateway.igw[0].id : null
-  description = "The ID of the Internet Gateway"
-}
-
-
-output "public_route_table_id" {
-  value = length(aws_route_table.public_route_table) > 0 ? aws_route_table.public_route_table[0].id : null
-  description = "The ID of the public route table"
-}
-
-
-output "public_subnets_ids" {
-  description = "List of IDs of public subnets"
-  value       = aws_subnet.public_subnet[*].id
-}
-
-output "public_subnets_cidr_blocks" {
-  description = "List of CIDR blocks of public subnets"
-  value       = compact(aws_subnet.public_subnet[*].cidr_block)
-}
-
-output "route53_zone_id" {
-  description = "Zone ID for the VPC Route53"
-  value       = aws_route53_zone.vpc_route53[*].zone_id  
-}
-
-output "private_subnets_ids" {
-  description = "List of IDs of private subnets"
-  value       = aws_subnet.private_subnet[*].id
-}
-
-output "private_subnets_cidr_blocks" {
-  description = "List of CIDR blocks of private subnets"
-  value       = compact(aws_subnet.private_subnet[*].cidr_block)
-}
-
-output "private_route_table_id" {
-  description = "The ID of the private route table"
-  value       = aws_route_table.private_route_table[*].id
-}
-
-output "nat_gateway_ips" {
-  description = "List of NAT Gateway IPs"
-  value       = aws_eip.nat[*].public_ip
-}
-
-output "nat_gateway_id" {
-  description = "List of IDs of NAT Gateways"
-  value       = aws_nat_gateway.nat_gateway[*].id
-}
-
-output "database_subnets_ids" {
-  description = "List of IDs of database subnets"
-  value       = aws_subnet.database_subnet[*].id
-}
-
-output "database_subnets_cidr_blocks" {
-  description = "List of CIDR blocks of database subnets"
-  value       = compact(aws_subnet.database_subnet[*].cidr_block)
 }
 
 output "flow_logs_bucket_arn" {
@@ -91,24 +21,37 @@ output "flow_logs_bucket_arn" {
 }
 
 output "vpc_flow_log_arn" {
-  description = "The ARN of the Flow Log"
+  description = "The ARN of the VPC Flow Log"
   value       = aws_flow_log.vpc_flow_log[*].arn
 }
 
-output "public_nacl_id" {
-  description = "The ID of the public Network ACL"
-  value       = length(aws_network_acl.public) > 0 ? aws_network_acl.public[0].id : null
+output "igw_id" {
+  description = "Internet Gateway ID"
+  value       = aws_internet_gateway.igw.id
 }
 
-output "private_nacl_id" {
-  description = "The ID of the private Network ACL"
-  value       = length(aws_network_acl.private) > 0 ? aws_network_acl.private[0].id : null
+output "nat_gateway_ids" {
+  description = "List of NAT Gateway IDs"
+  value       = [for nat in aws_nat_gateway.nat_gateway : nat.id]
 }
 
-output "database_nacl_id" {
-  value = length(aws_network_acl.database) > 0 ? aws_network_acl.database : null
+output "public_rt_id" {
+  value = aws_route_table.public_rt.id
 }
-# Outputs for VPC Endpoints
+
+output "privat_rt_id" {
+  value = aws_route_table.private_rt.id
+}
+
+output "route53_zone_id" {
+  description = "Zone ID for the VPC Route53"
+  value       = aws_route53_zone.vpc_route53[*].zone_id
+}
+
+# ----------------------------
+# VPC Endpoint Outputs
+# ----------------------------
+
 output "s3_endpoint" {
   description = "Details of the S3 VPC endpoint"
   value = var.enable_s3_endpoint ? {
@@ -143,26 +86,9 @@ output "nlb_endpoint" {
   } : null
 }
 
-output "endpoint_security_group_rules" {
-  description = "Ingress and egress rules of the endpoint security group"
-  value = var.enable_endpoint_sg ? {
-    ingress = aws_security_group.endpoint_sg[0].ingress
-    egress  = aws_security_group.endpoint_sg[0].egress
-  } : null
-}
-
-output "endpoint_security_group" {
-  description = "Details of the endpoint security group"
-  value = var.enable_endpoint_sg ? {
-    id          = aws_security_group.endpoint_sg[0].id
-    name        = aws_security_group.endpoint_sg[0].name
-    description = aws_security_group.endpoint_sg[0].description
-    vpc_id      = aws_security_group.endpoint_sg[0].vpc_id
-  } : null
-}
-
-
-###############ALB ##############3
+# ----------------------------
+# ALB Outputs
+# ----------------------------
 
 output "alb_arn" {
   value       = var.create_alb ? one(aws_lb.alb[*].arn) : null
@@ -180,32 +106,43 @@ output "alb_zone_id" {
 }
 
 output "alb_http_listener_arn" {
-  value       = aws_lb_listener.alb_http_listener.arn
   description = "The ARN of the ALB HTTP listener"
+  value       = try(aws_lb_listener.alb_http_listener[0].arn, null)
 }
 
 output "alb_https_listener_arn" {
-  value       = try(aws_lb_listener.alb_https_listener[0].arn, null)
   description = "The ARN of the ALB HTTPS listener (if present)"
+  value       = try(aws_lb_listener.alb_https_listener[0].arn, null)
 }
 
-output "alb_security_group_id" {
-  value       = var.create_sg ? aws_security_group.alb_sg[0].id : var.existing_sg_id
-  description = "The security group ID of the ALB"
-}
-
-output "alb_security_group_arn" {
-  value       = var.create_sg ? aws_security_group.alb_sg[0].arn : null
-  description = "The security group ARN of the ALB"
-}
-
-
-############ NLB #######################
-
-
+# ----------------------------
+# NLB Output
+# ----------------------------
 
 output "nlb_arn" {
-  value       = var.create_alb ? one(aws_lb.nlb[*].arn) : null
-  description = "The ARN of the ALB"
+  value       = var.create_nlb ? one(aws_lb.nlb[*].arn) : null
+  description = "The ARN of the NLB"
 }
 
+
+####################### key pair ######################333
+
+######################################
+# Key Pair Outputs
+######################################
+output "key_pair_name" {
+  description = "Name of the created EC2 key pair"
+  value       = aws_key_pair.key_pair[0].key_name
+}
+
+output "private_key_path" {
+  description = "Path to the downloaded private key file (if generated)"
+  value       = var.create_private_key ? local_file.private_key[0].filename : "Not generated"
+}
+
+output "subnet_ids" {
+  value = {
+    for subnet in aws_subnet.subnets :
+    subnet.tags.Name => subnet.id
+  }
+}
