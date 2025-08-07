@@ -21,7 +21,7 @@ public_rt_cidr_block  = "0.0.0.0/0"
 private_rt_cidr_block = "0.0.0.0/0"
 
 # Use indexes for both public subnets
-public_subnet_indexes = [0, 2]  # index 0 = public-1, index 2 = public-2
+public_subnet_indexes = [0,2]  # index 0 = public-1, index 2 = public-2
 
 ##############################
 # NACL Configuration
@@ -252,3 +252,4 @@ private_key_algorithm  = "RSA"
 private_key_rsa_bits   = 4096
 public_key_path        = ""  # Leave blank if you're generating the key
 key_output_dir         = "/home/nikita/Downloads/terraform_code/keys"     # Directory where PEM file will be saved
+
