@@ -118,7 +118,7 @@ variable "subnet_azs" {
 variable "public_subnet_indexes" {
   type        = list(number)
   description = "Indexes of public subnets in subnet list"
-  default = [ 0. 2 ]
+  default = [ 0,2 ]
 }
 
 ######################## Route Tables ########################
