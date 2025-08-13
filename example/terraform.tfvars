@@ -252,4 +252,3 @@ private_key_algorithm  = "RSA"
 private_key_rsa_bits   = 4096
 public_key_path        = ""  # Leave blank if you're generating the key
 key_output_dir         = "/home/nikita/Downloads/terraform_code/keys"     # Directory where PEM file will be saved
-

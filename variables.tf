@@ -121,6 +121,7 @@ variable "public_subnet_indexes" {
   default = [ 0,2 ]
 }
 
+
 ######################## Route Tables ########################
 
 variable "public_rt_cidr_block" {
@@ -135,6 +136,7 @@ variable "private_rt_cidr_block" {
   default = "0.0.0.0/0"
 }
 
+########################## NAT ######################################
 variable "create_nat_gateway" {
   type        = bool
   description = "Enable NAT gateway creation"

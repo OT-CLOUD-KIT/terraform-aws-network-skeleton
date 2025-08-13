@@ -146,3 +146,24 @@ output "subnet_ids" {
     subnet.tags.Name => subnet.id
   }
 }
+
+
+output "public_subnet_ids" {
+  description = "List of public subnet IDs"
+  value       = local.public_subnet_ids
+}
+
+output "private_subnet_ids" {
+  description = "List of private subnet IDs"
+  value       = local.private_subnet_ids
+}
+
+output "application_subnet_ids" {
+  description = "List of application subnet IDs"
+  value       = local.application_subnet_ids
+}
+
+output "database_subnet_ids" {
+  description = "List of database subnet IDs"
+  value       = local.database_subnet_ids
+}

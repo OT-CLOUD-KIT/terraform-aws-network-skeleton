@@ -88,6 +88,11 @@ variable "nacl_rules" {
   default = {}
 }
 
+variable "create_igw_gateway" {
+  type   = bool
+  default = true
+}
+
 variable "create_nat_gateway" {
   type    = bool
   default = false
