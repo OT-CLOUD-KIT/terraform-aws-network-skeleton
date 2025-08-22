@@ -90,11 +90,11 @@ route53_zone   = "example.internal"
 ##############################
 # VPC Endpoints
 ##############################
-enable_s3_endpoint = true
+enable_s3_endpoint = false
 service_name_s3    = "com.amazonaws.us-east-1.s3"
 s3_endpoint_type   = "Gateway"
 
-enable_ec2_endpoint     = true
+enable_ec2_endpoint     = false
 service_name_ec2        = "com.amazonaws.us-east-1.ec2"
 ec2_endpoint_type       = "Interface"
 ec2_endpoint_subnet_type = "public"
@@ -230,3 +230,7 @@ env     = "prod"
 owner   = "nikita"
 program = "otcloudkit"
 region = "us-east-1"
+
+enable_alb_sg  = true
+enable_endpoint_sg = true
+enable_nlb_sg = true

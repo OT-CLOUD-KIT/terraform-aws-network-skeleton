@@ -392,7 +392,7 @@ resource "local_file" "private_key" {
   count           = var.create_key_pair && var.create_private_key ? 1 : 0
   content         = tls_private_key.ec2_key[0].private_key_pem
   filename        = "${var.key_output_dir}/${var.key_pair_name}.pem"
-  file_permission = "0600"
+  file_permission = "0400"
 
   depends_on = [aws_key_pair.key_pair]
 }

@@ -478,3 +478,23 @@ variable "region" {
   default = "us-east-1"
   
 }
+
+variable "enable_alb_sg" {
+  description = "Enable or disable the ALB security group"
+  type        = bool
+  default     = true
+}
+
+
+variable "enable_nlb_sg" {
+  description = "Enable or disable the ALB security group"
+  type        = bool
+  default     = true
+}
+
+
+variable "enable_endpoint_sg" {
+  description = "Enable or disable the ALB security group"
+  type        = bool
+  default     = true
+}

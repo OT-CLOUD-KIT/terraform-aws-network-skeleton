@@ -1,7 +1,9 @@
 
 module "alb_security_group" {
+  for_each    = var.enable_alb_sg ? { enabled = true } : {}
+
   source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
-  name_sg     = "alb-sg"
+  name_sg     = "${var.env}-${var.program}-alb-sg"
   vpc_id      = module.network.vpc_id
   provisioner = var.provisioner
   tags        = var.tags
@@ -10,8 +12,10 @@ module "alb_security_group" {
 }
 
 module "nlb_security_group" {
+  for_each    = var.enable_nlb_sg ? { enabled = true } : {}
+
   source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
-  name_sg     = "nlb-sg"
+  name_sg     = "${var.env}-${var.program}-nlb-sg"
   vpc_id      = module.network.vpc_id
   provisioner = var.provisioner
   tags        = var.tags
@@ -20,8 +24,10 @@ module "nlb_security_group" {
 }
 
 module "endpoint_security_group" {
+    for_each    = var.enable_endpoint_sg ? { enabled = true } : {}
+
   source      = "git@github.com:OT-CLOUD-KIT/terraform-aws-security-groups.git?ref=v0.0.2"
-  name_sg     = "endpoint-sg"
+  name_sg     = "${var.env}-${var.program}-endpoint-sg"
   vpc_id      = module.network.vpc_id
   provisioner = var.provisioner
   tags        = var.tags
@@ -31,7 +37,7 @@ module "endpoint_security_group" {
 
 
 module "network" {
-  source = "../"  
+  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=v.0.1"  
   # VPC
   vpc_cidr             = var.vpc_cidr
   instance_tenancy     = var.instance_tenancy
@@ -84,12 +90,12 @@ module "network" {
   service_name_nlb           = var.service_name_nlb
   nlb_endpoint_type          = var.nlb_endpoint_type
   nlb_private_dns_enabled    = var.nlb_private_dns_enabled
-  endpoint_sg_id             = module.endpoint_security_group.sg_id
 
+  endpoint_sg_id = try(module.endpoint_security_group["enabled"].sg_id, null)
   # ALB
   create_alb                 = var.create_alb
   internal                   = var.internal
-  alb_sg_id                  = module.alb_security_group.sg_id
+  alb_sg_id                  = try(module.alb_security_group["enabled"].sg_id, null)
   enable_deletion_protection = var.enable_deletion_protection
   access_logs                = var.access_logs
   alb_certificate_arn        = var.alb_certificate_arn
@@ -97,8 +103,8 @@ module "network" {
   # NLB
   create_nlb    = var.create_nlb
   is_internal   = var.is_internal
-  nlb_sg_id     = module.nlb_security_group.sg_id
 
+  nlb_sg_id = try(module.nlb_security_group["enabled"].sg_id, null)
   # Key Pair
   create_key_pair       = var.create_key_pair
   create_private_key    = var.create_private_key

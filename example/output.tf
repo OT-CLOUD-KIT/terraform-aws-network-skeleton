@@ -108,17 +108,17 @@ output "nlb_arn" {
 
 output "alb_sg_id" {
   description = "Security Group ID for ALB"
-  value       = module.alb_security_group.sg_id
+  value       = try(module.alb_security_group["enabled"].sg_id, "")
 }
 
 output "nlb_sg_id" {
   description = "Security Group ID for NLB"
-  value       = module.nlb_security_group.sg_id
+  value       = try(module.nlb_security_group["enabled"].sg_id,"")
 }
 
 output "endpoint_sg_id" {
   description = "Security Group ID for Endpoint"
-  value       = module.endpoint_security_group.sg_id
+  value       = try(module.endpoint_security_group["enabled"].sg_id, "")
 }
 
 
