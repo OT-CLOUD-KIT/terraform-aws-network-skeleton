@@ -10,7 +10,8 @@ resource "aws_vpc" "vpc" {
   tags = merge(
     {
       Name = "${local.base_name}-vpc"
-      "kubernetes.io/cluster/${var.cluster_name}-eks-cluster" = "owned"
+      "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
+
     },
     local.common_tags
   )
@@ -29,7 +30,7 @@ resource "aws_subnet" "subnets" {
   tags = merge(
     {
       Name = local.subnets[count.index].name
-      "kubernetes.io/cluster/${var.cluster_name}-eks-cluster" = "owned"
+      "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
     },
     local.common_tags
   )

@@ -43,11 +43,7 @@ variable "instance_tenancy" {
   default     = "default"
 }
 
-variable "cluster_name" {
-  type        = string
-  default     = "eks-cluster"
-  description = "Name of the Kubernetes/EKS cluster"
-}
+
 
 ###################### Subnet Configuration ####################
 

@@ -43,7 +43,7 @@ module "network" {
   instance_tenancy     = var.instance_tenancy
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
-  cluster_name         = var.cluster_name
+  # cluster_name         = var.cluster_name
 
   # Subnets
   subnet_names = var.subnet_names

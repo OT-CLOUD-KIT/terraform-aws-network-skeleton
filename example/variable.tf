@@ -21,10 +21,6 @@ variable "enable_dns_hostnames" {
   default = true
 }
 
-variable "cluster_name" {
-  type    = string
-  default = "my-cluster"
-}
 
 ####################################
 # Subnet Configuration
@@ -235,81 +231,6 @@ variable "is_internal" {
   default = false
 }
 
-####################################
-# Naming Convention
-####################################
-# variable "env" {
-#   type    = string
-#   default = "d"
-# }
-
-# variable "bu" {
-#   type    = string
-#   default = "ot"
-# }
-
-# variable "app" {
-#   type    = string
-#   default = "bp"
-# }
-
-# variable "resource" {
-#   type    = string
-#   default = "instance"
-# }
-
-# variable "tenant" {
-#   type    = string
-#   default = ""
-# }
-
-# variable "enabled_features" {
-#   type    = list(string)
-#   default = []
-# }
-
-# variable "random_alphanumeric_len" {
-#   type    = number
-#   default = 4
-# }
-
-# variable "special" {
-#   type    = bool
-#   default = false
-# }
-
-# variable "upper" {
-#   type    = bool
-#   default = false
-# }
-
-# variable "number" {
-#   type    = bool
-#   default = true
-# }
-
-# variable "gen_no_of_names" {
-#   type    = number
-#   default = 1
-# }
-
-# ####################################
-# # Tags & Metadata
-# ####################################
-# variable "team" {
-#   type    = string
-#   default = "infra"
-# }
-
-# variable "program" {
-#   type    = string
-#   default = "ot"
-# }
-
-# variable "region" {
-#   type    = string
-#   default = "us-east-1"
-# }
 
 variable "provisioner" {
   type    = string

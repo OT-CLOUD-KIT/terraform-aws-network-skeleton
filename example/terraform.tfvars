@@ -5,14 +5,13 @@ vpc_cidr             = "10.0.0.0/16"
 instance_tenancy     = "default"
 enable_dns_support   = true
 enable_dns_hostnames = true
-cluster_name         = "eks-cluster"
 
 ##############################
 # Subnets
 ##############################
 subnet_names = ["public-1", "private-1", "public-2", "private-2", "private3"]
 subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24","10.0.5.0/24"]
-subnet_azs   = ["us-east-1a", "us-east-1a", "us-east-1b", "us-east-1a", "us-east-1a"]
+subnet_azs   = ["us-east-2a", "us-east-2a", "us-east-2b", "us-east-2a", "us-east-2b"]
 
 public_route_table    = "public-rt"
 private_route_table   = "private-rt"
@@ -229,7 +228,7 @@ key_output_dir        = "/home/nikita/Downloads/terraform_code/keys" # Directory
 env     = "prod"
 owner   = "nikita"
 program = "otcloudkit"
-region = "us-east-1"
+region = "us-east-2"
 
 enable_alb_sg  = true
 enable_endpoint_sg = true
