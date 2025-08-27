@@ -37,13 +37,12 @@ module "endpoint_security_group" {
 
 
 module "network" {
-  source = "git@github.com:OT-CLOUD-KIT/terraform-aws-network-skeleton.git?ref=v.0.1"  
+  source = "../"  
   # VPC
   vpc_cidr             = var.vpc_cidr
   instance_tenancy     = var.instance_tenancy
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
-  # cluster_name         = var.cluster_name
 
   # Subnets
   subnet_names = var.subnet_names
@@ -56,7 +55,7 @@ module "network" {
   private_rt_cidr_block = var.private_rt_cidr_block
   # NAT Gateway
   create_nat_gateway = var.create_nat_gateway
-
+  nat_gateway_count = var.nat_gateway_count
   #naming convention
   env = var.env
   owner= var.owner

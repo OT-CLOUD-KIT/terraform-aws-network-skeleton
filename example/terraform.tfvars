@@ -9,9 +9,9 @@ enable_dns_hostnames = true
 ##############################
 # Subnets
 ##############################
-subnet_names = ["public-1", "private-1", "public-2", "private-2", "private3"]
+subnet_names = ["public-subnet-1", "private-subnet-1", "public-subnet-2", "private-subnet-2", "private-subnet-3"]
 subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24","10.0.5.0/24"]
-subnet_azs   = ["us-east-2a", "us-east-2a", "us-east-2b", "us-east-2a", "us-east-2b"]
+subnet_azs   = ["us-east-1a", "us-east-1a", "us-east-1b", "us-east-1a", "us-east-1b"]
 
 public_route_table    = "public-rt"
 private_route_table   = "private-rt"
@@ -72,7 +72,7 @@ nacl_rules = {
 # NAT Gateway
 ##############################
 create_nat_gateway = true
-
+nat_gateway_count = 1
 ##############################
 # Flow Logs
 ##############################
@@ -228,7 +228,7 @@ key_output_dir        = "/home/nikita/Downloads/terraform_code/keys" # Directory
 env     = "prod"
 owner   = "nikita"
 program = "otcloudkit"
-region = "us-east-2"
+region = "us-east-1"
 
 enable_alb_sg  = true
 enable_endpoint_sg = true

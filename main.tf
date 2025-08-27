@@ -51,16 +51,17 @@ resource "aws_internet_gateway" "igw" {
   )
 }
 
+
 ######################################
-# Elastic IP for NAT
+# Elastic IPs for NAT Gateways
 ######################################
 resource "aws_eip" "nat" {
-  count  = var.create_nat_gateway ? 1 : 0
+  count  = var.create_nat_gateway ? var.nat_gateway_count : 0
   domain = "vpc"
 
   tags = merge(
     {
-      Name = "${local.base_name}-nat-eip"
+      Name = "${local.base_name}-nat-eip-${count.index + 1}"
     },
     local.common_tags
   )
@@ -69,22 +70,24 @@ resource "aws_eip" "nat" {
 }
 
 ######################################
-# NAT Gateway
+# NAT Gateways
 ######################################
 resource "aws_nat_gateway" "nat_gateway" {
-  count         = var.create_nat_gateway ? 1 : 0
-  subnet_id     = local.public_subnet_ids[0]
-  allocation_id = aws_eip.nat[0].id
+  count         = var.create_nat_gateway ? var.nat_gateway_count : 0
+  subnet_id     = local.public_subnet_ids[count.index]
+  allocation_id = aws_eip.nat[count.index].id
 
   tags = merge(
     {
-      Name = "${local.base_name}-nat"
+      Name = "${local.base_name}-nat-${count.index + 1}"
     },
     local.common_tags
   )
 
   depends_on = [aws_internet_gateway.igw]
 }
+
+
 
 ######################################
 # Route Tables

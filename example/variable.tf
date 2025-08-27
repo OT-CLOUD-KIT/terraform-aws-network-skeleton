@@ -419,3 +419,13 @@ variable "enable_endpoint_sg" {
   type        = bool
   default     = true
 }
+
+variable "nat_gateway_count" {
+  description = <<EOT
+Number of NAT Gateways to create:
+- Set to 1 for a single NAT Gateway (cost-saving)
+- Set to length of public_subnet_ids for HA (one per AZ)
+EOT
+  type        = number
+  default     = 1
+}
