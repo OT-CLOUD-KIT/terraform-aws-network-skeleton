@@ -105,14 +105,30 @@ output "alb_zone_id" {
   description = "The zone ID of the ALB"
 }
 
-output "alb_http_listener_arn" {
-  description = "The ARN of the ALB HTTP listener"
-  value       = try(aws_lb_listener.alb_http_listener[0].arn, null)
+
+
+# Return all listener ARNs as a map (optional)
+output "alb_listener_arns" {
+  description = "Map of all ALB listener ARNs"
+  value = { for k, v in aws_lb_listener.this : k => v.arn }
 }
 
+# Return HTTP listener ARN
+output "alb_http_listener_arn" {
+  description = "The ARN of the HTTP listener"
+  value = try(
+    [for l in aws_lb_listener.this : l.arn if l.protocol == "HTTP"][0],
+    null
+  )
+}
+
+# Return HTTPS listener ARN
 output "alb_https_listener_arn" {
-  description = "The ARN of the ALB HTTPS listener (if present)"
-  value       = try(aws_lb_listener.alb_https_listener[0].arn, null)
+  description = "The ARN of the HTTPS listener"
+  value = try(
+    [for l in aws_lb_listener.this : l.arn if l.protocol == "HTTPS"][0],
+    null
+  )
 }
 
 # ----------------------------

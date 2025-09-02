@@ -83,14 +83,23 @@ output "alb_zone_id" {
   description = "Zone ID of the ALB"
 }
 
+
+
+
 output "alb_http_listener_arn" {
-  value       = module.network.alb_http_listener_arn
   description = "HTTP Listener ARN for ALB"
+  value       = module.network.alb_http_listener_arn
 }
 
 output "alb_https_listener_arn" {
-  value       = module.network.alb_https_listener_arn
   description = "HTTPS Listener ARN for ALB"
+  value       = module.network.alb_https_listener_arn
+}
+
+# Optional: if you want to expose all listener ARNs
+output "alb_listener_arns" {
+  description = "All ALB listener ARNs from the module"
+  value       = module.network.alb_listener_arns
 }
 
 ######################

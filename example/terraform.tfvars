@@ -83,7 +83,7 @@ flow_logs_file_format  = "parquet"
 ##############################
 # Route 53
 ##############################
-create_route53 = false
+create_route53 = true
 route53_zone   = "example.internal"
 
 ##############################
@@ -109,7 +109,7 @@ nlb_private_dns_enabled = true
 ##############################
 # Application Load Balancer
 ##############################
-create_alb                 = false
+create_alb                 = true
 internal                   = false
 enable_deletion_protection = false
 alb_certificate_arn        = ""
@@ -217,8 +217,8 @@ endpoint_egress_rules = [
 ##############################
 # Key Pair Configuration
 ##############################
-create_key_pair       = false
-create_private_key    = false
+create_key_pair       = true
+create_private_key    = true
 key_pair_name         = "otbp-key"
 private_key_algorithm = "RSA"
 private_key_rsa_bits  = 4096
@@ -233,3 +233,19 @@ region = "us-east-1"
 enable_alb_sg  = true
 enable_endpoint_sg = true
 enable_nlb_sg = true
+
+
+alb_listeners = [
+  {
+    port     = 80
+    protocol = "HTTP"
+    certificate_arn = ""
+    target_group_arn = ""
+    default_action_type = "fixed-response"
+    fixed_response = {
+      content_type = "text/plain"
+      message_body = "No target group, fixed response"
+      status_code  = "200"
+    }
+  }
+]

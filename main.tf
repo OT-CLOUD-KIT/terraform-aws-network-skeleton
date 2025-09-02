@@ -311,41 +311,46 @@ resource "aws_lb" "alb" {
   )
 }
 
-resource "aws_lb_listener" "alb_http_listener" {
-  count             = var.create_alb ? 1 : 0
+
+
+
+resource "aws_lb_listener" "this" {
+  for_each          = { for idx, listener in var.alb_listeners : idx => listener }
   load_balancer_arn = aws_lb.alb[0].arn
-  port              = 80
-  protocol          = "HTTP"
+  port              = each.value.port
+  protocol          = each.value.protocol
+  certificate_arn   = each.value.certificate_arn != "" ? each.value.certificate_arn : null
 
-  default_action {
-    type = "redirect"
+  dynamic "default_action" {
+    for_each = [each.value]
+    content {
+      type = default_action.value.default_action_type
 
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+      # Forward action if target group exists
+      target_group_arn = contains(keys(default_action.value), "target_group_arn") && default_action.value.target_group_arn != "" ? default_action.value.target_group_arn : null
+
+      # Fixed response if defined
+      dynamic "fixed_response" {
+        for_each = default_action.value.fixed_response != null ? [default_action.value.fixed_response] : []
+        content {
+          content_type = fixed_response.value.content_type
+          message_body = fixed_response.value.message_body
+          status_code  = fixed_response.value.status_code
+        }
+      }
+
+      # Redirect if defined
+      dynamic "redirect" {
+        for_each = default_action.value.redirect != null ? [default_action.value.redirect] : []
+        content {
+          port        = redirect.value.port
+          protocol    = redirect.value.protocol
+          status_code = redirect.value.status_code
+        }
+      }
     }
   }
 }
-
-resource "aws_lb_listener" "alb_https_listener" {
-  count             = trim(var.alb_certificate_arn, " ") == "" ? 0 : 1
-  load_balancer_arn = aws_lb.alb[0].arn
-  port              = 443
-  protocol          = "HTTPS"
-  certificate_arn   = var.alb_certificate_arn
-
-  default_action {
-    type = "fixed-response"
-
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Fixed response content"
-      status_code  = "200"
-    }
-  }
-}
-
 ######################################
 # NLB
 ######################################

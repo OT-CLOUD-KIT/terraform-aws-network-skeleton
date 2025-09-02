@@ -333,3 +333,26 @@ EOT
   type        = number
   default     = 1
 }
+
+
+variable "alb_listeners" {
+  description = "List of listeners to create on the ALB"
+  type = list(object({
+    port            = number
+    protocol        = string
+    certificate_arn = string
+    target_group_arn = optional(string)
+    default_action_type = string          # "forward", "fixed-response", "redirect"
+    fixed_response = optional(object({
+      content_type = string
+      message_body = string
+      status_code  = string
+    }))
+    redirect = optional(object({
+      port        = string
+      protocol    = string
+      status_code = string
+    }))
+  }))
+  default = []
+}

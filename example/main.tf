@@ -99,6 +99,9 @@ module "network" {
   access_logs                = var.access_logs
   alb_certificate_arn        = var.alb_certificate_arn
 
+alb_listeners = var.alb_listeners
+
+
   # NLB
   create_nlb    = var.create_nlb
   is_internal   = var.is_internal
