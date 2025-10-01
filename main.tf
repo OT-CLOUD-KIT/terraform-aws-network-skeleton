@@ -315,7 +315,8 @@ resource "aws_lb" "alb" {
 
 
 resource "aws_lb_listener" "this" {
-  for_each          = { for idx, listener in var.alb_listeners : idx => listener }
+  for_each = var.create_alb ? { for idx, listener in var.alb_listeners : idx => listener } : {}
+
   load_balancer_arn = aws_lb.alb[0].arn
   port              = each.value.port
   protocol          = each.value.protocol
