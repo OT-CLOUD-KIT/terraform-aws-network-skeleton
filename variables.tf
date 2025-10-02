@@ -321,13 +321,13 @@ variable "nlb_sg_id" {
 variable "create_key_pair" {
   description = "Whether to create the EC2 key pair"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "create_private_key" {
   description = "Whether to generate a private key (if false, public key must be provided)"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "key_pair_name" {
