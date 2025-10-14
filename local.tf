@@ -1,121 +1,76 @@
 locals {
   # Standard tag components
-  base_name = "${var.env}-${var.bu}-${var.app}"
+  base_name = "${var.bu}-${var.program}-${var.app}-${var.env}"
 
   common_tags = {
-    "BusinessUnit" = var.bu
-    "Program"      = var.program
-    "Application"  = var.app
-    "Environment"  = var.env
-    "Team"         = var.team
-    "Region"       = var.region
-    "ManagedBy"    = "Terraform"
+    BusinessUnit = var.bu
+    Program      = var.program
+    Application  = var.app
+    Environment  = var.env
+    Team         = var.team
+    Region       = var.region
+    ManagedBy    = "Terraform"
   }
 
-public_port_rule_numbers = {
-    for idx, port in var.public_ports :
-    port => {
-      rule  = 100 * (idx + 1)
-      cidrs = ["0.0.0.0/0"]  # Public access
-    }
-  }
 
-  private_ingress_rules = var.create_private_nacl ? {
-    for pair in flatten([
-      for port_index, port in var.private_ports : [
-        for cidr_index, cidr in var.public_subnets : {
-          key        = "${port}-${cidr}-ingress"
-          rule       = (port_index + 1) * 100 + cidr_index * 10
-          port       = port
-          cidr_block = cidr
-        }
-      ]
-    ]) : pair.key => {
-      rule       = pair.rule
-      port       = pair.port
-      cidr_block = pair.cidr_block
+#################### subnet ##########################333
+  subnets = [
+    for i in range(length(var.subnet_names)) : {
+      name       = "${var.env}-${var.subnet_names[i]}"
+      cidr       = var.subnet_cidrs[i]
+      avail_zone = var.subnet_azs[i]
     }
-  } : {}
+  ]
 
-  private_egress_rules = var.create_private_nacl ? {
-    for pair in flatten([
-      for port_index, port in var.private_ports : [
-        for cidr_index, cidr in var.database_subnets : {
-          key        = "${port}-${cidr}-egress"
-          rule       = (port_index + 1) * 100 + cidr_index * 10 + 1
-          port       = port
-          cidr_block = cidr
-        }
-      ]
-    ]) : pair.key => {
-      rule       = pair.rule
-      port       = pair.port
-      cidr_block = pair.cidr_block
-    }
-  } : {}
+  public_subnet_indexes = [
+    for idx, name in var.subnet_names :
+    idx if can(regex("(?i)public", name))
+  ]
 
-  db_egress_rules = var.create_database_nacl ? {
-    for pair in flatten([
-      for port_index, port in var.database_ports : [
-        for cidr_index, cidr in var.database_subnets : {
-          key        = "${port}-${cidr}-egress"
-          rule       = (port_index + 1) * 100 + cidr_index * 10 + 1
-          port       = port
-          cidr_block = cidr
-        }
-      ]
-    ]) : pair.key => {
-      rule       = pair.rule
-      port       = pair.port
-      cidr_block = pair.cidr_block
-    }
-  } : {}
+  private_subnet_indexes = [
+    for idx, name in var.subnet_names :
+    idx if !can(regex("(?i)public", name))
+  ]
 
-  # Optional: db_ingress_rules (if needed)
-  db_ingress_rules = var.create_database_nacl ? {
-    for pair in flatten([
-      for port_index, port in var.database_ports : [
-        for cidr_index, cidr in var.private_subnets : {
-          key        = "${port}-${cidr}-ingress"
-          rule       = (port_index + 1) * 100 + cidr_index * 10
-          port       = port
-          cidr_block = cidr
-        }
-      ]
-    ]) : pair.key => {
-      rule       = pair.rule
-      port       = pair.port
-      cidr_block = pair.cidr_block
-    }
-  } : {}
+  public_subnet_ids = [
+    for i in local.public_subnet_indexes :
+    aws_subnet.subnets[i].id
+  ]
 
+  private_subnet_ids = [
+    for i in local.private_subnet_indexes :
+    aws_subnet.subnets[i].id
+  ]
+
+  application_subnet_ids = [
+    for i, subnet in aws_subnet.subnets :
+    subnet.id if can(regex("(?i)application", var.subnet_names[i]))
+  ]
+
+  database_subnet_ids = [
+    for i, subnet in aws_subnet.subnets :
+    subnet.id if can(regex("(?i)database", var.subnet_names[i]))
+  ]
 }
+
+
+
+
+#################### NACL ########################
 
 locals {
-  sg_ingress_rules = flatten([for rules in var.ingress_rule :
-    merge({
-      rules_map = rules,
-      key       = join(" ", ["cidr_block"], rules.cidr, ["from_port"], [rules.from_port], ["to_port"], [rules.to_port], ["ipv6_cidr"], rules.ipv6_cidr, ["source_sg_id"], [rules.source_SG_ID], ["protocol"], [rules.protocol])
-    })
-  ])
-
-
-  security_group_ingress_rules = { for rules in local.sg_ingress_rules :
-    rules.key => rules.rules_map
+  nacls = {
+    for i in range(length(var.nacl_names)) :
+    var.nacl_names[i] => "${var.env}-${var.nacl_names[i]}-nacl"
   }
 
-  sg_egress_rules = flatten([for rules in var.egress_rule :
-    merge({
-      rules_map = rules,
-      key       = join(" ", ["cidr_block"], rules.cidr, ["from_port"], [rules.from_port], ["to_port"], [rules.to_port], ["ipv6_cidr"], rules.ipv6_cidr, ["source_sg_id"], [rules.source_SG_ID], ["protocol"], [rules.protocol])
-    })
-  ])
-
-  security_group_egress_rules = { for rules in local.sg_egress_rules :
-    rules.key => rules.rules_map
+  nacl_config = {
+    for nacl_key, nacl_value in var.nacl_rules :
+    nacl_key => {
+      name       = local.nacls[nacl_key]
+      subnet_ids = [for index in nacl_value.subnet_index : aws_subnet.subnets[index].id]
+      ingress    = nacl_value.ingress_rules
+      egress     = nacl_value.egress_rules
+    }
   }
 }
-
-
-###############################NACL#######################3
-
