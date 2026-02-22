@@ -8,8 +8,6 @@ output "vpc_cidr_block" {
   value       = aws_vpc.vpc.cidr_block
 }
 
-
-
 output "default_security_group_id" {
   description = "The ID of the security group created by default on VPC creation"
   value       = aws_vpc.vpc.default_security_group_id
@@ -34,56 +32,29 @@ output "nat_gateway_ids" {
   description = "List of NAT Gateway IDs"
   value       = [for nat in aws_nat_gateway.nat_gateway : nat.id]
 }
+# output "route_table_ids" {
+#   value = {
+#     for k, rt in aws_route_table.route_tables : k => rt.id
+#   }
+# }
 
-output "public_rt_id" {
-  value = aws_route_table.public_rt.id
+# output "public_rt_id" {
+#   value = aws_route_table.public_rt.id
+# }
+
+# output "privat_rt_id" {
+#   value = aws_route_table.private_rt.id
+# }
+
+output "vgw_id" {
+  description = "Virtual Private Gateway ID"
+  value       = var.create_vgw ? aws_vpn_gateway.vgw[0].id : null
 }
 
-output "privat_rt_id" {
-  value = aws_route_table.private_rt.id
-}
 
 output "route53_zone_id" {
   description = "Zone ID for the VPC Route53"
   value       = aws_route53_zone.vpc_route53[*].zone_id
-}
-
-# ----------------------------
-# VPC Endpoint Outputs
-# ----------------------------
-
-output "s3_endpoint" {
-  description = "Details of the S3 VPC endpoint"
-  value = var.enable_s3_endpoint ? {
-    id              = aws_vpc_endpoint.s3[0].id
-    service_name    = aws_vpc_endpoint.s3[0].service_name
-    dns_entries     = aws_vpc_endpoint.s3[0].dns_entry
-    route_table_ids = aws_vpc_endpoint.s3[0].route_table_ids
-  } : null
-}
-
-output "ec2_endpoint" {
-  description = "Details of the EC2 VPC endpoint"
-  value = var.enable_ec2_endpoint ? {
-    id              = aws_vpc_endpoint.ec2[0].id
-    service_name    = aws_vpc_endpoint.ec2[0].service_name
-    dns_entries     = aws_vpc_endpoint.ec2[0].dns_entry
-    subnet_ids      = aws_vpc_endpoint.ec2[0].subnet_ids
-    security_groups = aws_vpc_endpoint.ec2[0].security_group_ids
-    private_dns     = aws_vpc_endpoint.ec2[0].private_dns_enabled
-  } : null
-}
-
-output "nlb_endpoint" {
-  description = "Details of the NLB VPC endpoint"
-  value = var.enable_nlb_endpoint ? {
-    id              = aws_vpc_endpoint.nlb[0].id
-    service_name    = aws_vpc_endpoint.nlb[0].service_name
-    dns_entries     = aws_vpc_endpoint.nlb[0].dns_entry
-    subnet_ids      = aws_vpc_endpoint.nlb[0].subnet_ids
-    security_groups = aws_vpc_endpoint.nlb[0].security_group_ids
-    private_dns     = aws_vpc_endpoint.nlb[0].private_dns_enabled
-  } : null
 }
 
 # ----------------------------
@@ -167,12 +138,11 @@ output "subnet_ids" {
 
 output "public_subnet_ids" {
   description = "List of public subnet IDs"
-  value       = local.public_subnet_ids
+  value       = local.all_subnet_ids
 }
 
-output "private_subnet_ids" {
-  description = "List of private subnet IDs"
-  value       = local.private_subnet_ids
+output "route_table_names" {
+  value = var.route_table_names
 }
 
 output "application_subnet_ids" {

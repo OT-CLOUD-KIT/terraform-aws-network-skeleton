@@ -87,11 +87,45 @@ variable "private_rt_cidr_block" {
   default = "0.0.0.0/0"
 }
 
+variable "route_table_subnet_map" {
+  description = "Mapping of route tables to subnet indexes"
+  type        = map(list(number))
+}
+
+variable "route_table_igw_cidr" {
+  description = "CIDR for IGW route"
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
+variable "route_table_names" {
+  description = "List of route table names"
+  type        = list(string)
+  default     = []
+}
+
+#variable "endpoint_route_table_id" {
+#  description = "Route table ID to associate with the S3 Gateway VPC endpoint"
+#  type        = string
+#}
+
 ########################## NAT ######################################
 variable "create_nat_gateway" {
   type        = bool
   description = "Enable NAT gateway creation"
   default     = true
+}
+
+#######################virtual gateway#################
+
+variable "create_vgw" {
+  type    = bool
+  default = false
+}
+
+variable "vgw_name" {
+  type    = string
+  default = null
 }
 
 ########################## NACL ###########################
@@ -115,6 +149,10 @@ variable "nacl_rules" {
   default     = {}
 }
 
+variable "nacl_subnet_map" {
+  description = "Mapping of NACLs to subnet indexes"
+  type        = map(list(number))
+}
 ########################## Route53 ###########################
 
 variable "create_route53" {
@@ -157,21 +195,6 @@ variable "enable_s3_endpoint" {
 }
 
 variable "service_name_s3" {
-  type        = string
-  default     = ""
-}
-
-variable "s3_endpoint_type" {
-  type        = string
-  default     = "Gateway"
-}
-
-variable "enable_ec2_endpoint" {
-  type        = bool
-  default     = false
-}
-
-variable "service_name_ec2" {
   type        = string
   default     = ""
 }
