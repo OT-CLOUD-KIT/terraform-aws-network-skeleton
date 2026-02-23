@@ -10,6 +10,7 @@ resource "aws_vpc" "vpc" {
   tags = merge(
     {
       Name = "${local.base_name}-vpc"
+      customer_code = var.Customer_Code
       "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
 
     },
@@ -31,6 +32,7 @@ resource "aws_subnet" "subnets" {
     {
       Name = local.subnets[count.index].name
       "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
+      Project = var.Project
     },
     local.common_tags
   )
@@ -46,6 +48,7 @@ resource "aws_internet_gateway" "igw" {
   tags = merge(
     {
       Name = "${local.base_name}-igw"
+      CC-Project = var.CC-Project
     },
     local.common_tags
   )
@@ -116,12 +119,12 @@ resource "aws_nat_gateway" "nat_gateway" {
 ######################################
 resource "aws_route_table" "rt" {
   for_each = local.route_tables
-
   vpc_id = aws_vpc.vpc.id
 
   tags = merge(
     { Name = each.key },
-    local.common_tags
+    local.common_tags,
+    {CC = var.CC}
   )
 }
 
@@ -223,101 +226,6 @@ resource "aws_route53_zone" "vpc_route53" {
     local.common_tags
   )
 }
-
-
-######################################
-# ALB
-######################################
-resource "aws_lb" "alb" {
-  count                     = var.create_alb ? 1 : 0
-  name                      = "${local.base_name}-alb"
-  internal                  = var.internal
-  load_balancer_type        = "application"
-  subnets                   =  local.all_subnet_ids
-
-  security_groups           = var.alb_sg_id != "" ? [var.alb_sg_id] : null
-  enable_deletion_protection = var.enable_deletion_protection
-
-  dynamic "access_logs" {
-    for_each = var.access_logs.enabled && var.access_logs.bucket != null && var.access_logs.prefix != null ? [1] : []
-    content {
-      bucket  = var.access_logs.bucket
-      prefix  = var.access_logs.prefix
-      enabled = true
-    }
-  }
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-alb"
-    },
-    local.common_tags
-  )
-}
-
-
-
-
-resource "aws_lb_listener" "this" {
-  for_each = var.create_alb ? { for idx, listener in var.alb_listeners : idx => listener } : {}
-
-  load_balancer_arn = aws_lb.alb[0].arn
-  port              = each.value.port
-  protocol          = each.value.protocol
-  certificate_arn   = each.value.certificate_arn != "" ? each.value.certificate_arn : null
-
-  dynamic "default_action" {
-    for_each = [each.value]
-    content {
-      type = default_action.value.default_action_type
-
-      # Forward action if target group exists
-      target_group_arn = contains(keys(default_action.value), "target_group_arn") && default_action.value.target_group_arn != "" ? default_action.value.target_group_arn : null
-
-      # Fixed response if defined
-      dynamic "fixed_response" {
-        for_each = default_action.value.fixed_response != null ? [default_action.value.fixed_response] : []
-        content {
-          content_type = fixed_response.value.content_type
-          message_body = fixed_response.value.message_body
-          status_code  = fixed_response.value.status_code
-        }
-      }
-
-      # Redirect if defined
-      dynamic "redirect" {
-        for_each = default_action.value.redirect != null ? [default_action.value.redirect] : []
-        content {
-          port        = redirect.value.port
-          protocol    = redirect.value.protocol
-          status_code = redirect.value.status_code
-        }
-      }
-    }
-  }
-}
-######################################
-# NLB
-######################################
-resource "aws_lb" "nlb" {
-  count                     = var.create_nlb ? 1 : 0
-  name                      = "${local.base_name}-nlb"
-  internal                  = var.is_internal
-  load_balancer_type        = "network"
-  subnets = local.all_subnet_ids
-  enable_deletion_protection = var.enable_deletion_protection
-  security_groups           = var.nlb_sg_id != "" ? [var.nlb_sg_id] : null
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-nlb"
-    },
-    local.common_tags
-  )
-}
-
-
-################## key pair ######################
 
 ######################################
 # EC2 Key Pair (Generate and Save)

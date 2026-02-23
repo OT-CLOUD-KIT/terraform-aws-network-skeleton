@@ -104,11 +104,6 @@ variable "route_table_names" {
   default     = []
 }
 
-#variable "endpoint_route_table_id" {
-#  description = "Route table ID to associate with the S3 Gateway VPC endpoint"
-#  type        = string
-#}
-
 ########################## NAT ######################################
 variable "create_nat_gateway" {
   type        = bool
@@ -339,6 +334,22 @@ variable "private_key_rsa_bits" {
   default     = 4096
 }
 
+variable "Customer_Code" {
+  type = string
+}
+
+variable "CC" {
+  type = string
+}
+
+variable "Project" {
+  type = string
+}
+
+variable "CC-Project" {
+  type = string
+}
+
 variable "key_output_dir" {
   description = "Directory to write the generated private key"
   type        = string
@@ -379,3 +390,4 @@ variable "alb_listeners" {
   }))
   default = []
 }
+

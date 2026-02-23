@@ -32,19 +32,6 @@ output "nat_gateway_ids" {
   description = "List of NAT Gateway IDs"
   value       = [for nat in aws_nat_gateway.nat_gateway : nat.id]
 }
-# output "route_table_ids" {
-#   value = {
-#     for k, rt in aws_route_table.route_tables : k => rt.id
-#   }
-# }
-
-# output "public_rt_id" {
-#   value = aws_route_table.public_rt.id
-# }
-
-# output "privat_rt_id" {
-#   value = aws_route_table.private_rt.id
-# }
 
 output "vgw_id" {
   description = "Virtual Private Gateway ID"
@@ -57,66 +44,6 @@ output "route53_zone_id" {
   value       = aws_route53_zone.vpc_route53[*].zone_id
 }
 
-# ----------------------------
-# ALB Outputs
-# ----------------------------
-
-output "alb_arn" {
-  value       = var.create_alb ? one(aws_lb.alb[*].arn) : null
-  description = "The ARN of the ALB"
-}
-
-output "alb_dns_name" {
-  value       = var.create_alb ? one(aws_lb.alb[*].dns_name) : null
-  description = "The DNS name of the ALB"
-}
-
-output "alb_zone_id" {
-  value       = var.create_alb ? one(aws_lb.alb[*].zone_id) : null
-  description = "The zone ID of the ALB"
-}
-
-
-
-# Return all listener ARNs as a map (optional)
-output "alb_listener_arns" {
-  description = "Map of all ALB listener ARNs"
-  value = { for k, v in aws_lb_listener.this : k => v.arn }
-}
-
-# Return HTTP listener ARN
-output "alb_http_listener_arn" {
-  description = "The ARN of the HTTP listener"
-  value = try(
-    [for l in aws_lb_listener.this : l.arn if l.protocol == "HTTP"][0],
-    null
-  )
-}
-
-# Return HTTPS listener ARN
-output "alb_https_listener_arn" {
-  description = "The ARN of the HTTPS listener"
-  value = try(
-    [for l in aws_lb_listener.this : l.arn if l.protocol == "HTTPS"][0],
-    null
-  )
-}
-
-# ----------------------------
-# NLB Output
-# ----------------------------
-
-output "nlb_arn" {
-  value       = var.create_nlb ? one(aws_lb.nlb[*].arn) : null
-  description = "The ARN of the NLB"
-}
-
-
-####################### key pair ######################333
-
-######################################
-# Key Pair Outputs
-######################################
 output "key_pair_name" {
   description = "Name of the created EC2 key pair"
   value       = var.create_key_pair && length(aws_key_pair.key_pair) > 0 ? aws_key_pair.key_pair[0].key_name : var.key_pair_name
