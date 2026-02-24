@@ -1,47 +1,27 @@
-
-
 locals {
-  base_name= "${var.env}-${var.program}"
-}
+  base_name = "${trim(var.env, "-")}-${trim(var.program, "-")}"
 
-locals {
   common_tags = {
-    env = var.env
+    env   = var.env
     owner = var.owner
   }
-}
 
-
-#################### subnet ##########################333{
-
-locals {
   subnets = [
     for i in range(length(var.subnet_names)) : {
-      name       = "${var.env}-${var.program}-${var.subnet_names[i]}"
-      cidr       = var.subnet_cidrs[i]
-      avail_zone = var.subnet_azs[i]
+      name = var.subnet_names[i]
+      cidr  = var.subnet_cidrs[i]
+      az    = var.subnet_azs[i]
+      index = i
     }
   ]
 
-  public_subnet_indexes = [
-    for idx, name in var.subnet_names :
-    idx if can(regex("(?i)public", name))
-  ]
+  subnet_ids_by_index = {
+    for i, s in aws_subnet.subnets :
+    i => s.id
+  }
 
-  private_subnet_indexes = [
-    for idx, name in var.subnet_names :
-    idx if !can(regex("(?i)public", name))
-  ]
-
-  public_subnet_ids = [
-    for i in local.public_subnet_indexes :
-    aws_subnet.subnets[i].id
-  ]
-
-  private_subnet_ids = [
-    for i in local.private_subnet_indexes :
-    aws_subnet.subnets[i].id
-  ]
+  # Single source of truth
+  all_subnet_ids = aws_subnet.subnets[*].id
 
   application_subnet_ids = [
     for i, subnet in aws_subnet.subnets :
@@ -52,37 +32,66 @@ locals {
     for i, subnet in aws_subnet.subnets :
     subnet.id if can(regex("(?i)database", var.subnet_names[i]))
   ]
-}
 
-
-
-locals {
   selected_subnet_ids = (
-    var.ec2_endpoint_type == "Interface" ?
-    (
-      var.ec2_endpoint_subnet_type == "private" ?
-      local.private_subnet_ids :
-      local.public_subnet_ids
-    ) : null
+    var.ec2_endpoint_type == "Interface" ? local.all_subnet_ids : null
   )
 }
 
 
-#################### NACL ########################
 
 locals {
-  nacls = {
-    for i in range(length(var.nacl_names)) :
-    var.nacl_names[i] => "${var.env}-${var.nacl_names[i]}-nacl"
-  }
-
   nacl_config = {
-    for nacl_key, nacl_value in var.nacl_rules :
-    nacl_key => {
-      name       = local.nacls[nacl_key]
-      subnet_ids = [for index in nacl_value.subnet_index : aws_subnet.subnets[index].id]
-      ingress    = nacl_value.ingress_rules
-      egress     = nacl_value.egress_rules
+    for name, subnet_indexes in var.nacl_subnet_map :
+    name => {
+      name       = name
+      subnet_ids = [for i in subnet_indexes : local.subnet_ids_by_index[i]]
+
+      ingress = [
+        {
+          rule_no    = 100
+          protocol   = "-1"
+          action     = "allow"
+          cidr_block = "0.0.0.0/0"
+          from_port  = 0
+          to_port    = 0
+        }
+      ]
+
+      egress = [
+        {
+          rule_no    = 100
+          protocol   = "-1"
+          action     = "allow"
+          cidr_block = "0.0.0.0/0"
+          from_port  = 0
+          to_port    = 0
+        }
+      ]
     }
   }
+}
+
+
+################### ROUTE TABLE #######################
+
+locals {
+  route_tables = {
+    for name, subnet_indexes in var.route_table_subnet_map :
+    name => {
+      name       = name
+      subnet_ids = [for i in subnet_indexes : local.subnet_ids_by_index[i]]
+    }
+  }
+}
+
+locals {
+  route_table_associations = flatten([
+    for rt_name, subnet_indexes in var.route_table_subnet_map : [
+      for subnet_index in subnet_indexes : {
+        rt_name      = rt_name
+        subnet_index = subnet_index
+      }
+    ]
+  ])
 }

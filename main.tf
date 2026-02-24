@@ -10,6 +10,7 @@ resource "aws_vpc" "vpc" {
   tags = merge(
     {
       Name = "${local.base_name}-vpc"
+      customer_code = var.Customer_Code
       "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
 
     },
@@ -25,12 +26,13 @@ resource "aws_subnet" "subnets" {
 
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = local.subnets[count.index].cidr
-  availability_zone = local.subnets[count.index].avail_zone
+  availability_zone = local.subnets[count.index].az
 
   tags = merge(
     {
       Name = local.subnets[count.index].name
       "kubernetes.io/cluster/${var.env}-${var.program}-eks-cluster" = "owned"
+      Project = var.Project
     },
     local.common_tags
   )
@@ -46,11 +48,34 @@ resource "aws_internet_gateway" "igw" {
   tags = merge(
     {
       Name = "${local.base_name}-igw"
+      CC-Project = var.CC-Project
     },
     local.common_tags
   )
 }
 
+resource "aws_route" "public_igw" {
+  route_table_id         = aws_route_table.rt["172263_RTB1-DEV_S1"].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
+}
+
+######################################
+# Virtual Gateway
+######################################
+
+resource "aws_vpn_gateway" "vgw" {
+  count = var.create_vgw ? 1 : 0
+
+  vpc_id = aws_vpc.vpc.id
+
+  tags = merge(
+    {
+      Name = var.vgw_name
+    },
+    local.common_tags
+  )
+}
 
 ######################################
 # Elastic IPs for NAT Gateways
@@ -74,7 +99,7 @@ resource "aws_eip" "nat" {
 ######################################
 resource "aws_nat_gateway" "nat_gateway" {
   count         = var.create_nat_gateway ? var.nat_gateway_count : 0
-  subnet_id     = local.public_subnet_ids[count.index]
+  subnet_id = local.all_subnet_ids[count.index]
   allocation_id = aws_eip.nat[count.index].id
 
   tags = merge(
@@ -92,54 +117,30 @@ resource "aws_nat_gateway" "nat_gateway" {
 ######################################
 # Route Tables
 ######################################
-resource "aws_route_table" "public_rt" {
+resource "aws_route_table" "rt" {
+  for_each = local.route_tables
   vpc_id = aws_vpc.vpc.id
 
-  route {
-    cidr_block = var.public_rt_cidr_block
-    gateway_id = aws_internet_gateway.igw.id
-  }
-
   tags = merge(
-    {
-      Name = "${local.base_name}-public-rt"
-    },
-    local.common_tags
+    { Name = each.key },
+    local.common_tags,
+    {CC = var.CC}
   )
 }
 
-resource "aws_route_table" "private_rt" {
-  vpc_id = aws_vpc.vpc.id
+#############################
+# RT Association
+############################
+resource "aws_route_table_association" "rt_assoc" {
+  count = length(local.route_table_associations)
 
-  route {
-    cidr_block     = var.private_rt_cidr_block
-    nat_gateway_id = var.create_nat_gateway ? aws_nat_gateway.nat_gateway[0].id : null
-  }
+  route_table_id = aws_route_table.rt[
+    local.route_table_associations[count.index].rt_name
+  ].id
 
-  tags = merge(
-    {
-      Name = "${local.base_name}-private-rt"
-    },
-    local.common_tags
-  )
-}
-
-resource "aws_route_table_association" "public_rt_association" {
-  for_each = { for idx in var.public_subnet_indexes : idx => aws_subnet.subnets[idx].id }
-
-  subnet_id      = each.value
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "private_rt_association" {
-  for_each = {
-    for idx, subnet in aws_subnet.subnets : idx => subnet.id
-    if !(contains(var.public_subnet_indexes, idx))
-  }
-
-
-  subnet_id      = each.value
-  route_table_id = aws_route_table.private_rt.id
+  subnet_id = aws_subnet.subnets[
+    local.route_table_associations[count.index].subnet_index
+  ].id
 }
 
 ######################################
@@ -225,155 +226,6 @@ resource "aws_route53_zone" "vpc_route53" {
     local.common_tags
   )
 }
-
-######################################
-# VPC Endpoints
-######################################
-resource "aws_vpc_endpoint" "s3" {
-  count             = var.enable_s3_endpoint ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = var.service_name_s3
-  vpc_endpoint_type = var.s3_endpoint_type
-  route_table_ids   = [aws_route_table.private_rt.id]
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-s3-endpoint"
-    },
-    local.common_tags
-  )
-}
-
-
-
-
-resource "aws_vpc_endpoint" "ec2" {
-  count               = var.enable_ec2_endpoint ? 1 : 0
-  vpc_id              = aws_vpc.vpc.id
-  service_name        = var.service_name_ec2
-  vpc_endpoint_type   = var.ec2_endpoint_type
-  subnet_ids          = local.selected_subnet_ids
-  private_dns_enabled = var.ec2_private_dns_enabled
-  security_group_ids  = var.endpoint_sg_id != "" ? [var.endpoint_sg_id] : null
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-ec2-endpoint"
-    },
-    local.common_tags
-  )
-}
-
-resource "aws_vpc_endpoint" "nlb" {
-  count               = var.enable_nlb_endpoint ? 1 : 0
-  vpc_id              = aws_vpc.vpc.id
-  service_name        = var.service_name_nlb
-  vpc_endpoint_type   = var.nlb_endpoint_type
-  subnet_ids          = var.nlb_endpoint_type == "Interface" ? local.private_subnet_ids : null
-  private_dns_enabled = var.nlb_private_dns_enabled
-  security_group_ids  = var.nlb_endpoint_type == "Interface" && var.endpoint_sg_id != "" ? [var.endpoint_sg_id] : null
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-nlb-endpoint"
-    },
-    local.common_tags
-  )
-}
-
-######################################
-# ALB
-######################################
-resource "aws_lb" "alb" {
-  count                     = var.create_alb ? 1 : 0
-  name                      = "${local.base_name}-alb"
-  internal                  = var.internal
-  load_balancer_type        = "application"
-  subnets                   = var.internal ? local.private_subnet_ids : local.public_subnet_ids
-
-  security_groups           = var.alb_sg_id != "" ? [var.alb_sg_id] : null
-  enable_deletion_protection = var.enable_deletion_protection
-
-  dynamic "access_logs" {
-    for_each = var.access_logs.enabled && var.access_logs.bucket != null && var.access_logs.prefix != null ? [1] : []
-    content {
-      bucket  = var.access_logs.bucket
-      prefix  = var.access_logs.prefix
-      enabled = true
-    }
-  }
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-alb"
-    },
-    local.common_tags
-  )
-}
-
-
-
-
-resource "aws_lb_listener" "this" {
-  for_each = var.create_alb ? { for idx, listener in var.alb_listeners : idx => listener } : {}
-
-  load_balancer_arn = aws_lb.alb[0].arn
-  port              = each.value.port
-  protocol          = each.value.protocol
-  certificate_arn   = each.value.certificate_arn != "" ? each.value.certificate_arn : null
-
-  dynamic "default_action" {
-    for_each = [each.value]
-    content {
-      type = default_action.value.default_action_type
-
-      # Forward action if target group exists
-      target_group_arn = contains(keys(default_action.value), "target_group_arn") && default_action.value.target_group_arn != "" ? default_action.value.target_group_arn : null
-
-      # Fixed response if defined
-      dynamic "fixed_response" {
-        for_each = default_action.value.fixed_response != null ? [default_action.value.fixed_response] : []
-        content {
-          content_type = fixed_response.value.content_type
-          message_body = fixed_response.value.message_body
-          status_code  = fixed_response.value.status_code
-        }
-      }
-
-      # Redirect if defined
-      dynamic "redirect" {
-        for_each = default_action.value.redirect != null ? [default_action.value.redirect] : []
-        content {
-          port        = redirect.value.port
-          protocol    = redirect.value.protocol
-          status_code = redirect.value.status_code
-        }
-      }
-    }
-  }
-}
-######################################
-# NLB
-######################################
-resource "aws_lb" "nlb" {
-  count                     = var.create_nlb ? 1 : 0
-  name                      = "${local.base_name}-nlb"
-  internal                  = var.is_internal
-  load_balancer_type        = "network"
-  subnets                   = var.is_internal ? local.private_subnet_ids : local.public_subnet_ids
-  enable_deletion_protection = var.enable_deletion_protection
-  security_groups           = var.nlb_sg_id != "" ? [var.nlb_sg_id] : null
-
-  tags = merge(
-    {
-      Name = "${local.base_name}-nlb"
-    },
-    local.common_tags
-  )
-}
-
-
-################## key pair ######################
 
 ######################################
 # EC2 Key Pair (Generate and Save)
